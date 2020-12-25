@@ -53,8 +53,8 @@
   </url>
   
   <url>
-    <loc>/post/part-2-api-using-graphql/</loc>
-    <lastmod>2020-12-25T16:47:11+05:30</lastmod>
+    <loc>/post/part-3-api-using-graphql/</loc>
+    <lastmod>2018-12-31T00:00:00+00:00</lastmod>
   </url>
   
   <url>
@@ -64,6 +64,11 @@
   
   <url>
     <loc>/tag/testing/</loc>
+    <lastmod>2020-12-25T16:47:11+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>/post/part-2-api-using-graphql/</loc>
     <lastmod>2020-12-25T16:47:11+05:30</lastmod>
   </url>
   

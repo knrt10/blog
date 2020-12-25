@@ -5,12 +5,960 @@
     <link>/</link>
       <atom:link href="/index.xml" rel="self" type="application/rss+xml" />
     <description>knrt10&#39;s Blog</description>
-    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><copyright>knrt10 © 2020</copyright><lastBuildDate>Sun, 30 Dec 2018 00:00:00 +0000</lastBuildDate>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><copyright>knrt10 © 2020</copyright><lastBuildDate>Mon, 31 Dec 2018 00:00:00 +0000</lastBuildDate>
     <image>
       <url>/images/icon_hudaf87b0bbf6edf362efcd690a86c5023_625_512x512_fill_lanczos_center_2.png</url>
       <title>knrt10&#39;s Blog</title>
       <link>/</link>
     </image>
+    
+    <item>
+      <title>Part 3:- API using GraphQL and Node.js</title>
+      <link>/post/part-3-api-using-graphql/</link>
+      <pubDate>Mon, 31 Dec 2018 00:00:00 +0000</pubDate>
+      <guid>/post/part-3-api-using-graphql/</guid>
+      <description>&lt;p&gt;This is Article 3 for this series. You can find &lt;a href=&#34;https://knrt10.netlify.app/post/part-1-api-using-graphql/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;first article here&lt;/a&gt;. and &lt;a href=&#34;https://knrt10.netlify.app/post/part-2-api-using-graphql/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;second article here&lt;/a&gt;.&lt;/p&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;nav id=&#34;TableOfContents&#34;&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href=&#34;#about-this-article&#34;&gt;About this Article&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#creating-a-auth-based-system&#34;&gt;Creating a Auth based system&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#accessing-the-api&#34;&gt;Accessing the API&lt;/a&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;a href=&#34;#creating-a-todo&#34;&gt;Creating a Todo&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&#34;#updating-a-todo&#34;&gt;Updating a Todo&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&#34;#getting-all-todo&#34;&gt;Getting all Todo&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&#34;#deleting-a-todo&#34;&gt;Deleting a Todo&lt;/a&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#conclusion&#34;&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#code-for-this-series&#34;&gt;&lt;strong&gt;Code for this series&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#support&#34;&gt;Support&lt;/a&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;a href=&#34;#did-you-find-this-page-helpful-consider-sharing-it-&#34;&gt;Did you find this page helpful? Consider sharing it 🙌&lt;/a&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;
+&lt;h2 id=&#34;about-this-article&#34;&gt;About this Article&lt;/h2&gt;
+&lt;p&gt;In this article you will be able to do the following things:-&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Create an Auth based system.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Use JWT to verify the tokens&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;CRUD(Create Read Update Delete) operations for Todo using GraphQL&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Write tests for it.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;creating-a-auth-based-system&#34;&gt;Creating a Auth based system&lt;/h2&gt;
+&lt;p&gt;We need to have a system where users can create a todo only when they authenticate themselves as real user. For example, if we don’t authenticate our routes, anyone can create a todo and spammers can spam the database. Also we need to keep track of todo for a particular user. Including them and many other reasons we need to create an Auth based system. So let’s create a folder inside src called as middleware and then create 2 files inside it:-&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;auth.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;index.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Inside &lt;code&gt;src/middleware/auth.ts&lt;/code&gt; copy this :&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import jwt = require(&amp;quot;jsonwebtoken&amp;quot;);
+import { model } from &amp;quot;mongoose&amp;quot;;
+import { completeRequest } from &amp;quot;../functions/complete&amp;quot;;
+import {Response} from &amp;quot;../models&amp;quot;;
+import {UserSchema} from &amp;quot;../schemas&amp;quot;;
+import {Config} from &amp;quot;../shared&amp;quot;;
+
+const User = model(&amp;quot;User&amp;quot;, UserSchema);
+
+/**
+ * This is middleware to validate jwt token.
+ * @param req
+ * @param res
+ * @param next
+ */
+export async function isAuthenticated(context) {
+  const promise: Promise&amp;lt;Response&amp;gt; = new Promise((resolve, reject) =&amp;gt; {
+    const token: any = context.headers[&amp;quot;x-access-token&amp;quot;];
+    const secret: any = Config.secretKeys.jwtSecret;
+    if (!token) {
+      reject(new Response(403, &amp;quot;Auth token missing&amp;quot;, {
+        success: false,
+      }));
+    } else {
+      // verify jwt token
+      jwt.verify(token, secret, (err, decoded) =&amp;gt; {
+        if (err) {
+          reject(new Response(500, &amp;quot;Unable to authenticate user&amp;quot;, {
+            success: false,
+          }));
+        } else {
+          User.findById(decoded.id).select(&amp;quot;password&amp;quot;).then((user) =&amp;gt; {
+            if (!user) {
+              reject(new Response(400, &amp;quot;Sorry No user found&amp;quot;, {
+                success: false,
+              }));
+            } else {
+              resolve(new Response(200, &amp;quot;Successfull Response&amp;quot;, {
+                success: true,
+                user,
+                token,
+              }));
+            }
+          });
+        }
+      });
+    }
+  });
+  const val = await completeRequest(promise);
+  return val;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 1–6:-&lt;/em&gt; We require necessary modules for this file.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 16:-&lt;/em&gt; We are exporting a function to check whether a user is authenticated or not. This functions takes an argument which context which is generally a form of request.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 17:-&lt;/em&gt; This function is returning a promise.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 18–23&lt;/em&gt;:- Now as said earlier context is in form of request so it will contain headers, now we will check if any token is passed in x-access-token header. This is a custom header that we will use to pass our JWT token when making a GraphQL request to CRUD operation on a Todo. If token is not present in header we reject our promise with a newresponse that we created in response.ts.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 26–30:-&lt;/em&gt; You can check &lt;a href=&#34;https://jwt.io/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;here&lt;/a&gt; how a JWT works. So if any modification is made to our token then it will reject the with a new response.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 32–48:-&lt;/em&gt; If token is not tampered with then we recieve a decoded data. That decode data contains id of user. We then find that user with that id and return it. If no user is found we reject with a response.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 43–44:-&lt;/em&gt; We resolve the promise by passing it to completeRequest and gets back another promise but this promise has response in form we want. We then return the value.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;After 2 articles you might have idea what we are going to write in &lt;code&gt;src/middleware/index&lt;/code&gt;.ts. You may have already written it 😄, but let’s be sure and copy this code.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;export * from &amp;quot;./auth&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now lets create our Schema for Todo for our mongoose model. Create a file inside schemas named &lt;code&gt;todoSchema.ts&lt;/code&gt; and copy this inside&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;src/schemas/todoSchema.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import { Schema } from &amp;quot;mongoose&amp;quot;;
+import mongoose = require(&amp;quot;mongoose&amp;quot;);
+
+mongoose.Promise = global.Promise;
+
+/**
+ * This is Schema for Blog
+ * @constant {BlogSchema}
+ */
+export const TodoSchema = new Schema({
+  id: {
+    type: String,
+  },
+  postedByid: {
+    type: String,
+  },
+  title: {
+    type: String,
+    required: true,
+    select: true,
+  },
+  description: {
+    type: String,
+  },
+  postedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: &amp;quot;User&amp;quot;,
+  },
+  name: {
+    type: String, ref: &amp;quot;User&amp;quot;,
+  },
+}, {
+  timestamps: {},
+});
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We already understood how to make a schema when we created userSchema. Here is just one new thing on &lt;em&gt;line 25–28:-&lt;/em&gt; We need to reference the todo that is created to the user who created it. So &lt;code&gt;postedBy&lt;/code&gt; will contain &lt;code&gt;_id&lt;/code&gt; of user who will create that todo. &lt;em&gt;Line 29–31&lt;/em&gt; will store the name of the user.&lt;/p&gt;
+&lt;p&gt;Also update your &lt;code&gt;src/schemas/index.ts&lt;/code&gt; and add&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;export * from &amp;quot;./todoSchema&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now we will create functions for CRUD operations on a todo. So create file &lt;code&gt;todo.ts&lt;/code&gt; inside routes folder and copy this inside&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;src/routes/todo.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import { model } from &amp;quot;mongoose&amp;quot;;
+import { completeRequest } from &amp;quot;../functions/complete&amp;quot;;
+import { Response } from &amp;quot;../models&amp;quot;;
+import { TodoSchema, UserSchema } from &amp;quot;../schemas&amp;quot;;
+const User = model(&amp;quot;User&amp;quot;, UserSchema);
+const Todo = model(&amp;quot;Todo&amp;quot;, TodoSchema);
+
+/**
+ * This function creates a new Todo
+ * @param args
+ * @param user
+ */
+export async function addTodo(args, user) {
+  const promise: Promise&amp;lt;Response&amp;gt; = new Promise((resolve, reject) =&amp;gt; {
+    if (!args.input.title || !args.input.description) {
+      reject(new Response(200, &amp;quot;Please enter both title and description&amp;quot;, {
+        success: false,
+      }));
+    }
+
+    const title = args.input.title.trim();
+    const description = args.input.description.trim();
+    if (!title.length || !description.length) {
+      reject(new Response(200, &amp;quot;Title or description cannot be blank&amp;quot;, {
+        success: false,
+      }));
+    }
+
+    User.findById({ _id: user._id }, (err, user) =&amp;gt; {
+      const todo = new Todo({
+        postedBy: user.id,
+        name: user.name,
+        title,
+        description,
+      });
+
+      todo.id = todo._id;
+      todo.postedByid = user.id;
+      todo.save((err) =&amp;gt; {
+        if (err) {
+          reject(new Response(200, &amp;quot;Error in saving Todo&amp;quot;, {
+            success: false,
+          }));
+        }
+        resolve(new Response(200, &amp;quot;Successfully saved Todo&amp;quot;, {
+          success: true,
+          todo,
+        }));
+      });
+    });
+  });
+  const val = await completeRequest(promise);
+  return val;
+}
+
+/**
+ * This returns all todos for user
+ * @param user
+ */
+export async function getAlltodosForUser(user) {
+  const promise: Promise&amp;lt;Response&amp;gt; = new Promise((resolve) =&amp;gt; {
+    Todo.find({ postedBy: user._id }, (err, todos) =&amp;gt; {
+      resolve(new Response(200, &amp;quot;All todos&amp;quot;, {
+        success: true,
+        todos,
+      }));
+    });
+  });
+  const val = await completeRequest(promise);
+  return val;
+}
+
+/**
+ * This updates the todo information
+ * @param user
+ */
+export async function update(args, user) {
+  const promise: Promise&amp;lt;Response&amp;gt; = new Promise((resolve, reject) =&amp;gt; {
+    const todoId = args.input.id;
+    if (!args.input.title || !args.input.description || !todoId) {
+      reject(new Response(200, &amp;quot;Please enter all fields&amp;quot;, {
+        success: false,
+      }));
+    }
+
+    const title = args.input.title.trim();
+    const description = args.input.description.trim();
+    if (!title.length || !description.length) {
+      reject(new Response(200, &amp;quot;Title or description cannot be blank&amp;quot;, {
+        success: false,
+      }));
+    }
+
+    Todo.findById({ _id: todoId }, (err, todo) =&amp;gt; {
+      if (err) {
+        reject(new Response(200, &amp;quot;Not able to get todo&amp;quot;, {
+          success: false,
+        }));
+      } else if (String(todo.postedBy) !== String(user._id)) {
+        reject(new Response(200, &amp;quot;You don&#39;t have access to update this todo&amp;quot;, {
+          success: false,
+        }));
+      } else {
+        Todo.findOneAndUpdate({ _id: todoId }, { $set: { title, description } }, { new: true }, (err, todo) =&amp;gt; {
+          resolve(new Response(200, &amp;quot;Updated Todo&amp;quot;, {
+            success: true,
+            todo,
+          }));
+        });
+      }
+    });
+  });
+  const val = await completeRequest(promise);
+  return val;
+}
+
+/**
+ * This function deletes the particular todo we want
+ * @param args
+ */
+export async function deleteTodo(args, user) {
+  const promise: Promise&amp;lt;Response&amp;gt; = new Promise((resolve, reject) =&amp;gt; {
+    const todoId = args.id;
+    Todo.findById({ _id: todoId }, (err, data) =&amp;gt; {
+      if (err) {
+        reject(new Response(200, &amp;quot;Not able to get todo&amp;quot;, {
+          success: false,
+        }));
+      } else if (!data) {
+        reject(new Response(200, &amp;quot;Todo already deleted&amp;quot;, {
+          success: false,
+        }));
+      } else if (String(data.postedBy) !== String(user._id)) {
+        reject(new Response(200, &amp;quot;You don&#39;t have access to delete this todo&amp;quot;, {
+          success: false,
+        }));
+      } else {
+        Todo.findOneAndDelete({ _id: todoId }, () =&amp;gt; {
+          resolve(new Response(200, &amp;quot;Successfully deleted todo&amp;quot;, {
+            success: true,
+          }));
+        });
+      }
+    });
+  });
+  const val = await completeRequest(promise);
+  return val;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You might now have idea what we are doing. We have 4 functions.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;addTodo&lt;/em&gt; :- This creates a new todo.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;getAlltodosForUser&lt;/em&gt; :- This returns all todos for an authenticated user.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;update&lt;/em&gt; :- This updates a particular Todo.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;deleteTodo&lt;/em&gt; :- This deletes a particular todo.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;All Functions are authenticated. That is, only authenticated user can make request to perform CRUD operation.&lt;/p&gt;
+&lt;p&gt;Now lets create a graphQL schema for our Todo. Create a file &lt;code&gt;todographqlSchema.ts&lt;/code&gt; inside schemas folder and copy this inside&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;src/schemas/todographqlSchema.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import { GraphQLBoolean, GraphQLID, GraphQLInputObjectType, GraphQLInt, GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLString } from &amp;quot;graphql&amp;quot;;
+
+// User type
+const todoType = new GraphQLObjectType({
+  name: &amp;quot;todo&amp;quot;,
+  fields: {
+    id: { type: GraphQLID },
+    postedByid: { type: GraphQLID },
+    name: { type: GraphQLString },
+    title: { type: GraphQLString },
+    description: { type: GraphQLString },
+    createdAt: { type: GraphQLString },
+    updatedAt: { type: GraphQLString },
+  },
+});
+
+// Data reponse of user
+const DataResponse = new GraphQLObjectType({
+  name: &amp;quot;todoDataResponse&amp;quot;,
+  fields: {
+    success: { type: GraphQLBoolean },
+    todo: { type: todoType },
+    token: { type: GraphQLString },
+  },
+});
+
+// Response from User
+const responseType = new GraphQLObjectType({
+  name: &amp;quot;toDoResponse&amp;quot;,
+  fields: {
+    code: { type: new GraphQLNonNull(GraphQLInt) },
+    message: { type: new GraphQLNonNull(GraphQLString) },
+    data: { type: new GraphQLNonNull(DataResponse) },
+  },
+});
+
+const toDoInput = new GraphQLInputObjectType({
+  name: &amp;quot;todoInput&amp;quot;,
+  fields: {
+    title: { type: GraphQLString },
+    description: { type: GraphQLString },
+  },
+});
+
+const toDoInputUpdate = new GraphQLInputObjectType({
+  name: &amp;quot;todoInputUpdate&amp;quot;,
+  fields: {
+    id: { type: GraphQLString },
+    title: { type: GraphQLString },
+    description: { type: GraphQLString },
+  },
+});
+
+// For getting todo
+
+// Data reponse of user
+const todoUsersDataResponse = new GraphQLObjectType({
+  name: &amp;quot;todoUsersDataResponse&amp;quot;,
+  fields: {
+    success: { type: GraphQLBoolean },
+    todos: { type: new GraphQLList(todoType) },
+  },
+});
+
+const userTodoResponse = new GraphQLObjectType({
+  name: &amp;quot;userTodoResponse&amp;quot;,
+  fields: {
+    code: { type: new GraphQLNonNull(GraphQLInt) },
+    message: { type: new GraphQLNonNull(GraphQLString) },
+    data: { type: new GraphQLNonNull(todoUsersDataResponse) },
+  },
+});
+
+// For deleting Todo
+
+const todoDeleteResponse = new GraphQLObjectType({
+  name: &amp;quot;todoDeleteResponse&amp;quot;,
+  fields: {
+    success: { type: GraphQLBoolean },
+  },
+});
+
+const userTodoDeleteResponse = new GraphQLObjectType({
+  name: &amp;quot;userTodoDeleteResponse&amp;quot;,
+  fields: {
+    code: { type: new GraphQLNonNull(GraphQLInt) },
+    message: { type: new GraphQLNonNull(GraphQLString) },
+    data: { type: new GraphQLNonNull(todoDeleteResponse) },
+  },
+});
+
+export const todographqlSchema = {
+  todoType,
+  DataResponse,
+  responseType,
+  toDoInput,
+  toDoInputUpdate,
+  todoUsersDataResponse,
+  userTodoResponse,
+  userTodoDeleteResponse,
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You might have idea about it, as it is somewhat similar to &lt;code&gt;userLoginSchema.ts&lt;/code&gt; and &lt;code&gt;userRegisterSchema.ts&lt;/code&gt; for graphQL. Also we need to export this file so paste this line inside&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;src/schemas/index.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;export * from &amp;quot;./todographqlSchema&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now we need to finally add queries and mutation inside our &lt;code&gt;graphql.ts&lt;/code&gt;. Like we did for &lt;code&gt;loginUser&lt;/code&gt; and &lt;code&gt;registerUser&lt;/code&gt;. So copy and replace your old code with this inside&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;src/schemas/graphql.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import { GraphQLNonNull, GraphQLObjectType, GraphQLSchema, GraphQLString } from &amp;quot;graphql&amp;quot;;
+import { isAuthenticated } from &amp;quot;../middleware&amp;quot;;
+import { addTodo, deleteTodo, getAlltodosForUser, login, register, update } from &amp;quot;../routes&amp;quot;;
+import { todographqlSchema } from &amp;quot;./todographqlSchema&amp;quot;;
+import { userLoginSchema } from &amp;quot;./userLoginSchema&amp;quot;;
+import { userRegisterSchema } from &amp;quot;./userRegisterSchema&amp;quot;;
+
+// Define the Query type
+const queryType = new GraphQLObjectType({
+  name: &amp;quot;Query&amp;quot;,
+  fields: {
+    loginUser: {
+      type: new GraphQLNonNull(userRegisterSchema.responseType),
+      // `args` describes the arguments that the `user` query accepts
+      args: {
+        input: { type: userLoginSchema.UserInput },
+      },
+      async resolve(_, args) {
+        const val = await login(args);
+        return val;
+      },
+    },
+    profileUser: {
+      type: new GraphQLNonNull(userRegisterSchema.responseType),
+      // `args` describes the arguments that the `user` query accepts
+      async resolve(parent, args, context, info) {
+        const authenticated = await isAuthenticated(context);
+        return authenticated;
+      },
+    },
+    todoUsers: {
+      type: new GraphQLNonNull(todographqlSchema.userTodoResponse),
+      // `args` describes the arguments that the `user` query accepts
+      async resolve(parent, args, context, info) {
+        const authenticated = await isAuthenticated(context);
+        if (authenticated.code !== 200) {
+          return authenticated;
+        } else {
+          const val = await getAlltodosForUser(authenticated.data.user);
+          return val;
+        }
+      },
+    },
+  },
+});
+
+// Defining Mutation
+const mutationType = new GraphQLObjectType({
+  name: &amp;quot;Mutation&amp;quot;,
+  fields: {
+    registerUser: {
+      type: new GraphQLNonNull(userRegisterSchema.responseType),
+      // `args` describes the arguments that the `user` query accepts
+      args: {
+        input: { type: userRegisterSchema.UserInput },
+      },
+      async resolve(_, args) {
+        const val = await register(args);
+        return val;
+      },
+    },
+    addTodo: {
+      type: new GraphQLNonNull(todographqlSchema.responseType),
+      // `args` describes the arguments that the `user` query accepts
+      args: {
+        input: { type: todographqlSchema.toDoInput },
+      },
+      async resolve(parent, args, context, info) {
+        const authenticated = await isAuthenticated(context);
+        if (authenticated.code !== 200) {
+          return authenticated;
+        } else {
+          const val = await addTodo(args, authenticated.data.user);
+          return val;
+        }
+      },
+    },
+    updateTodo: {
+      type: new GraphQLNonNull(todographqlSchema.responseType),
+      // `args` describes the arguments that the `user` query accepts
+      args: {
+        input: { type: todographqlSchema.toDoInputUpdate },
+      },
+      async resolve(parent, args, context, info) {
+        const authenticated = await isAuthenticated(context);
+        if (authenticated.code !== 200) {
+          return authenticated;
+        } else {
+          const val = await update(args, authenticated.data.user);
+          return val;
+        }
+      },
+    },
+    deleteTodo: {
+      type: new GraphQLNonNull(todographqlSchema.userTodoDeleteResponse),
+      // `args` describes the arguments that the `user` query accepts
+      args: {
+        id: { type: GraphQLString },
+      },
+      async resolve(parent, args, context, info) {
+        const authenticated = await isAuthenticated(context);
+        if (authenticated.code !== 200) {
+          return authenticated;
+        } else {
+          const val = await deleteTodo(args, authenticated.data.user);
+          return val;
+        }
+      },
+    },
+  },
+});
+
+export const schema = new GraphQLSchema({
+  query: queryType,
+  mutation: mutationType,
+});
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now lets write tests for our code changes. First we need to create 2 new files inside our test folder.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;profileQueries.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;todoQueries.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Inside &lt;code&gt;src/test/profileQueries.ts&lt;/code&gt; copy this code&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;const query = `query profileUser{
+  profileUser {
+    code
+    message
+    data {
+      success
+      token
+      user {
+        name
+      }
+    }
+  }
+}`;
+
+const profileSuccessfullyQuery = {
+  query: query,
+  operationName: &amp;quot;profileUser&amp;quot;
+  ,
+};
+
+export const profileUser = {
+  profileSuccessfullyQuery,
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Also copy this to &lt;code&gt;src/test/todoQueries.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;const UserRoute = require(&amp;quot;./user-test.spec&amp;quot;);
+const todoId = UserRoute.toDoSavedData;
+
+const query = `mutation addTodo($input: todoInput) {
+  addTodo(input: $input) {
+    code
+    message
+    data {
+      success
+     	todo {
+        id
+        postedByid
+        description
+        updatedAt
+        createdAt
+        name
+      }
+    }
+  }
+}`;
+
+const updateQuery = `mutation updateTodo($input: todoInputUpdate) {
+  updateTodo(input: $input) {
+    code
+    message
+    data {
+      success
+     	todo {
+        id
+        postedByid
+        description
+        updatedAt
+        createdAt
+        name
+        title
+      }
+    }
+  }
+}`;
+
+const deleteQuery = `mutation deleteTodo($id: String) {
+  deleteTodo(id: $id) {
+    code
+    message
+    data {
+      success
+    }
+  }
+}`;
+
+const allTodos = `query todoUsers {
+  todoUsers{
+    code
+    message
+    data {
+      success
+      todos {
+        title
+        description
+      }
+    }
+  }
+}`;
+
+const toDoSuccessfullyQuery = {
+  query: query,
+  operationName: &amp;quot;addTodo&amp;quot;
+  ,
+  variables: {
+    input: {
+      title: &amp;quot;Test title&amp;quot;,
+      description: &amp;quot;test description&amp;quot;,
+    },
+  },
+};
+
+const toDoFailNotitleOrDescyQuery = {
+  query: query,
+  operationName: &amp;quot;addTodo&amp;quot;
+  ,
+  variables: {
+    input: {
+      title: &amp;quot;&amp;quot;,
+      description: &amp;quot;&amp;quot;,
+    },
+  },
+};
+
+const toDoFailNotitleQuery = {
+  query: query,
+  operationName: &amp;quot;addTodo&amp;quot;
+  ,
+  variables: {
+    input: {
+      title: &amp;quot;   &amp;quot;,
+      description: &amp;quot;dasdasda&amp;quot;,
+    },
+  },
+};
+
+const toDoUpdateQuery = {
+  query: updateQuery,
+  operationName: &amp;quot;updateTodo&amp;quot;
+  ,
+  variables: {
+    input: {
+      id: &amp;quot;anything&amp;quot;,
+      title: &amp;quot;Test title&amp;quot;,
+      description: &amp;quot;test description&amp;quot;,
+    },
+  },
+};
+
+const toDoFailNoIdUpdateQuery = {
+  query: updateQuery,
+  operationName: &amp;quot;updateTodo&amp;quot;
+  ,
+  variables: {
+    input: {
+      id: &amp;quot;&amp;quot;,
+      title: &amp;quot;fsdfs&amp;quot;,
+      description: &amp;quot;fsdsdf&amp;quot;,
+    },
+  },
+};
+
+const toDoFailNotitleOrDescUpdateQuery = {
+  query: updateQuery,
+  operationName: &amp;quot;updateTodo&amp;quot;
+  ,
+  variables: {
+    input: {
+      id: &amp;quot;anything&amp;quot;,
+      title: &amp;quot;  &amp;quot;,
+      description: &amp;quot;   &amp;quot;,
+    },
+  },
+};
+
+const toDoFailDeleteQuery = {
+  query: deleteQuery,
+  operationName: &amp;quot;deleteTodo&amp;quot;
+  ,
+  variables: {
+    id: &amp;quot;anything&amp;quot;,
+  },
+};
+
+const TodoAllQuery = {
+  query: allTodos,
+  operationName: &amp;quot;todoUsers&amp;quot;
+  ,
+};
+
+export const todoQueries = {
+  toDoSuccessfullyQuery,
+  toDoFailNotitleOrDescyQuery,
+  toDoFailNotitleQuery,
+  toDoUpdateQuery,
+  toDoFailNoIdUpdateQuery,
+  toDoFailNotitleOrDescUpdateQuery,
+  toDoFailDeleteQuery,
+  updateQuery,
+  deleteQuery,
+  TodoAllQuery,
+};
+view raw
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We need to update our user-test.spec.ts file. This file is very big, so open the link given below and copy the file into your &lt;em&gt;&lt;a href=&#34;https://github.com/knrt10/Todo-backendAPI/blob/master/src/test/user-test.spec.ts&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;src/test/user-test.spec.ts&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;Lets run our test by running npm run build &amp;amp;&amp;amp; npm run coverage. Make sure your MongoDB is up and running. You will get this output.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*xnnQGSOuzh5amiyAUu4SUw.png&#34; alt=&#34;Still 💯 code coverage 😉&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;Still 💯 code coverage 😉&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;accessing-the-api&#34;&gt;Accessing the API&lt;/h2&gt;
+&lt;p&gt;First check your mongoDB server is up and running. Then start your server by running the following command&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;npm start&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Now to access the API of application open your &lt;a href=&#34;https://github.com/prisma/graphql-playground&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;GraphQL-Playground&lt;/a&gt; and enter url &lt;a href=&#34;http://localhost:3000/graphql&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;http://localhost:3000/graphql&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;creating-a-todo&#34;&gt;Creating a Todo&lt;/h3&gt;
+&lt;p&gt;Enter Query&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;mutation addTodo($input: todoInput) {
+  addTodo(input: $input) {
+    code
+    message
+    data {
+      success
+      todo {
+        id
+        postedByid
+        description
+        updatedAt
+        createdAt
+        name
+      }
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and then query variable&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;input&amp;quot;: {
+    &amp;quot;title&amp;quot;: &amp;quot;This is a test todo&amp;quot;,
+    &amp;quot;description&amp;quot;: &amp;quot;Lets see if this works&amp;quot;
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Important:-&lt;/strong&gt; You need to set &lt;em&gt;HTTP HEADERS&lt;/em&gt;. You can get this token with the use of login API.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;query loginUser($input: UserInputLogin) {
+  loginUser(input: $input) {
+    data {
+      token
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and then query variable&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;input&amp;quot;: {
+    &amp;quot;username&amp;quot;: &amp;quot;knrt10&amp;quot;,
+    &amp;quot;password&amp;quot;: &amp;quot;test&amp;quot;
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;From this response copy the token and then copy this code to your &lt;em&gt;HTTP HEADERS&lt;/em&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;x-access-token&amp;quot;: &amp;quot;your access token from login API&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Then hit play button, you will get response like this. Try removing the token or changing token to something else and see the response.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*1B0JXQ1Ht7_aua8XOuZKUw.png&#34; alt=&#34;creating a Todo&#34;&gt;&lt;em&gt;creating a Todo&lt;/em&gt;&lt;/p&gt;
+&lt;h3 id=&#34;updating-a-todo&#34;&gt;Updating a Todo&lt;/h3&gt;
+&lt;p&gt;Enter Query&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;mutation updateTodo($input: todoInputUpdate) {
+  updateTodo(input: $input) {
+    code
+    message
+    data {
+      success
+      todo {
+        id
+        postedByid
+        description
+        updatedAt
+        createdAt
+        name
+        title
+      }
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and then query variable. You can get the id from the todo you created before.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;input&amp;quot;: {
+    &amp;quot;id&amp;quot;: &amp;quot;id of your todo you created before&amp;quot;,
+    &amp;quot;title&amp;quot;: &amp;quot;Second check?&amp;quot;,
+    &amp;quot;description&amp;quot;: &amp;quot;Yaaho.&amp;quot;
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You also need to set header like above. After that when you hit play button you will get this response&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*Vx7r5F3dFriIgOchHbKIfg.png&#34; alt=&#34;updating a Todo&#34;&gt;&lt;em&gt;updating a Todo&lt;/em&gt;&lt;/p&gt;
+&lt;h3 id=&#34;getting-all-todo&#34;&gt;Getting all Todo&lt;/h3&gt;
+&lt;p&gt;Enter Query&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;query todoUsers {
+  todoUsers{
+    code
+    message
+    data {
+      success
+      todos {
+        title
+        description
+        id
+      }
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and then set &lt;em&gt;HTTP HEADERS&lt;/em&gt; like above API.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;x-access-token&amp;quot;: &amp;quot;Your access token&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;After that when you hit play button you will get this response&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*AadeoCY3Nbpp24uSCjgomQ.png&#34; alt=&#34;All todos for users&#34;&gt;&lt;em&gt;All todos for users&lt;/em&gt;&lt;/p&gt;
+&lt;h3 id=&#34;deleting-a-todo&#34;&gt;Deleting a Todo&lt;/h3&gt;
+&lt;p&gt;Enter Query&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;mutation deleteTodo($id: String) {
+  deleteTodo(id: $id) {
+    code
+    message
+    data {
+      success
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and then query variable. You can get the id from the todo you created before.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;id&amp;quot;: &amp;quot;5c25156f70d37365ede03609&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You also need to set header like above. After that when you hit play button you will get this response&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*hqzW3K_Ie0M6Lp23J7B5NA.png&#34; alt=&#34;deleting a Todo&#34;&gt;&lt;em&gt;deleting a Todo&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;That is for this part. In this part you learnt following things:-&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;How to write Schema for GraphQL.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How to create Schema for Todo and link it with a User&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Perform CRUD operation on a Todo using GraphQL.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How to write clean code.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How maintain 💯 code coverage 😉.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;You can see it took &lt;strong&gt;33 tests&lt;/strong&gt; to run in about &lt;strong&gt;804ms.&lt;/strong&gt; Which is less than a second. It shows how fast and precise our code is.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;code-for-this-series&#34;&gt;&lt;strong&gt;Code for this series&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;Code is open sourced on &lt;a href=&#34;https://github.com/knrt10/Todo-backendAPI&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Github&lt;/a&gt; under MIT license. Feel free to use it as reference if you are stuck anywhere.&lt;/p&gt;
+&lt;h2 id=&#34;support&#34;&gt;Support&lt;/h2&gt;
+&lt;p&gt;I wrote this series of articles by using my free time. A little motivation and support helps me a lot. If you like this nifty hack you can support me by doing any (or all 😉 ) of the following:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Follow me on &lt;a href=&#34;http://github.com/knrt10/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Github&lt;/a&gt; for more such projects.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;⭐️ Star it on &lt;a href=&#34;https://github.com/knrt10/Todo-backendAPI&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Github&lt;/a&gt; and make it trend so that other people can know about my project.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;did-you-find-this-page-helpful-consider-sharing-it-&#34;&gt;Did you find this page helpful? Consider sharing it 🙌&lt;/h3&gt;
+</description>
+    </item>
     
     <item>
       <title>Part 2:- API using GraphQL and Node.js</title>
