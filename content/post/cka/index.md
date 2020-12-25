@@ -14,6 +14,7 @@ tags:
 - security
 categories:
 - kubernetes
+- tech
 image:
   placement: 2
   caption: "[My certification](https://www.youracclaim.com/badges/e93b0ba2-51ea-41b3-82ba-10cf4d67ac70)"

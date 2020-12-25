@@ -1,0 +1,3230 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>tech | knrt10&#39;s Blog</title>
+    <link>/category/tech/</link>
+      <atom:link href="/category/tech/index.xml" rel="self" type="application/rss+xml" />
+    <description>tech</description>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><copyright>knrt10 © 2020</copyright><lastBuildDate>Mon, 31 Dec 2018 00:00:00 +0000</lastBuildDate>
+    <image>
+      <url>/images/icon_hudaf87b0bbf6edf362efcd690a86c5023_625_512x512_fill_lanczos_center_2.png</url>
+      <title>tech</title>
+      <link>/category/tech/</link>
+    </image>
+    
+    <item>
+      <title>Part 3:- API using GraphQL and Node.js</title>
+      <link>/post/part-3-api-using-graphql/</link>
+      <pubDate>Mon, 31 Dec 2018 00:00:00 +0000</pubDate>
+      <guid>/post/part-3-api-using-graphql/</guid>
+      <description>&lt;p&gt;This is Article 3 for this series. You can find &lt;a href=&#34;https://knrt10.netlify.app/post/part-1-api-using-graphql/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;first article here&lt;/a&gt;. and &lt;a href=&#34;https://knrt10.netlify.app/post/part-2-api-using-graphql/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;second article here&lt;/a&gt;.&lt;/p&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;nav id=&#34;TableOfContents&#34;&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href=&#34;#about-this-article&#34;&gt;About this Article&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#creating-a-auth-based-system&#34;&gt;Creating a Auth based system&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#accessing-the-api&#34;&gt;Accessing the API&lt;/a&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;a href=&#34;#creating-a-todo&#34;&gt;Creating a Todo&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&#34;#updating-a-todo&#34;&gt;Updating a Todo&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&#34;#getting-all-todo&#34;&gt;Getting all Todo&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&#34;#deleting-a-todo&#34;&gt;Deleting a Todo&lt;/a&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#conclusion&#34;&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#code-for-this-series&#34;&gt;&lt;strong&gt;Code for this series&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#support&#34;&gt;Support&lt;/a&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;a href=&#34;#did-you-find-this-page-helpful-consider-sharing-it-&#34;&gt;Did you find this page helpful? Consider sharing it 🙌&lt;/a&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;
+&lt;h2 id=&#34;about-this-article&#34;&gt;About this Article&lt;/h2&gt;
+&lt;p&gt;In this article you will be able to do the following things:-&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Create an Auth based system.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Use JWT to verify the tokens&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;CRUD(Create Read Update Delete) operations for Todo using GraphQL&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Write tests for it.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;creating-a-auth-based-system&#34;&gt;Creating a Auth based system&lt;/h2&gt;
+&lt;p&gt;We need to have a system where users can create a todo only when they authenticate themselves as real user. For example, if we don’t authenticate our routes, anyone can create a todo and spammers can spam the database. Also we need to keep track of todo for a particular user. Including them and many other reasons we need to create an Auth based system. So let’s create a folder inside src called as middleware and then create 2 files inside it:-&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;auth.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;index.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Inside &lt;code&gt;src/middleware/auth.ts&lt;/code&gt; copy this :&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import jwt = require(&amp;quot;jsonwebtoken&amp;quot;);
+import { model } from &amp;quot;mongoose&amp;quot;;
+import { completeRequest } from &amp;quot;../functions/complete&amp;quot;;
+import {Response} from &amp;quot;../models&amp;quot;;
+import {UserSchema} from &amp;quot;../schemas&amp;quot;;
+import {Config} from &amp;quot;../shared&amp;quot;;
+
+const User = model(&amp;quot;User&amp;quot;, UserSchema);
+
+/**
+ * This is middleware to validate jwt token.
+ * @param req
+ * @param res
+ * @param next
+ */
+export async function isAuthenticated(context) {
+  const promise: Promise&amp;lt;Response&amp;gt; = new Promise((resolve, reject) =&amp;gt; {
+    const token: any = context.headers[&amp;quot;x-access-token&amp;quot;];
+    const secret: any = Config.secretKeys.jwtSecret;
+    if (!token) {
+      reject(new Response(403, &amp;quot;Auth token missing&amp;quot;, {
+        success: false,
+      }));
+    } else {
+      // verify jwt token
+      jwt.verify(token, secret, (err, decoded) =&amp;gt; {
+        if (err) {
+          reject(new Response(500, &amp;quot;Unable to authenticate user&amp;quot;, {
+            success: false,
+          }));
+        } else {
+          User.findById(decoded.id).select(&amp;quot;password&amp;quot;).then((user) =&amp;gt; {
+            if (!user) {
+              reject(new Response(400, &amp;quot;Sorry No user found&amp;quot;, {
+                success: false,
+              }));
+            } else {
+              resolve(new Response(200, &amp;quot;Successfull Response&amp;quot;, {
+                success: true,
+                user,
+                token,
+              }));
+            }
+          });
+        }
+      });
+    }
+  });
+  const val = await completeRequest(promise);
+  return val;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 1–6:-&lt;/em&gt; We require necessary modules for this file.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 16:-&lt;/em&gt; We are exporting a function to check whether a user is authenticated or not. This functions takes an argument which context which is generally a form of request.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 17:-&lt;/em&gt; This function is returning a promise.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 18–23&lt;/em&gt;:- Now as said earlier context is in form of request so it will contain headers, now we will check if any token is passed in x-access-token header. This is a custom header that we will use to pass our JWT token when making a GraphQL request to CRUD operation on a Todo. If token is not present in header we reject our promise with a newresponse that we created in response.ts.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 26–30:-&lt;/em&gt; You can check &lt;a href=&#34;https://jwt.io/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;here&lt;/a&gt; how a JWT works. So if any modification is made to our token then it will reject the with a new response.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 32–48:-&lt;/em&gt; If token is not tampered with then we recieve a decoded data. That decode data contains id of user. We then find that user with that id and return it. If no user is found we reject with a response.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 43–44:-&lt;/em&gt; We resolve the promise by passing it to completeRequest and gets back another promise but this promise has response in form we want. We then return the value.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;After 2 articles you might have idea what we are going to write in &lt;code&gt;src/middleware/index&lt;/code&gt;.ts. You may have already written it 😄, but let’s be sure and copy this code.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;export * from &amp;quot;./auth&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now lets create our Schema for Todo for our mongoose model. Create a file inside schemas named &lt;code&gt;todoSchema.ts&lt;/code&gt; and copy this inside&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;src/schemas/todoSchema.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import { Schema } from &amp;quot;mongoose&amp;quot;;
+import mongoose = require(&amp;quot;mongoose&amp;quot;);
+
+mongoose.Promise = global.Promise;
+
+/**
+ * This is Schema for Blog
+ * @constant {BlogSchema}
+ */
+export const TodoSchema = new Schema({
+  id: {
+    type: String,
+  },
+  postedByid: {
+    type: String,
+  },
+  title: {
+    type: String,
+    required: true,
+    select: true,
+  },
+  description: {
+    type: String,
+  },
+  postedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: &amp;quot;User&amp;quot;,
+  },
+  name: {
+    type: String, ref: &amp;quot;User&amp;quot;,
+  },
+}, {
+  timestamps: {},
+});
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We already understood how to make a schema when we created userSchema. Here is just one new thing on &lt;em&gt;line 25–28:-&lt;/em&gt; We need to reference the todo that is created to the user who created it. So &lt;code&gt;postedBy&lt;/code&gt; will contain &lt;code&gt;_id&lt;/code&gt; of user who will create that todo. &lt;em&gt;Line 29–31&lt;/em&gt; will store the name of the user.&lt;/p&gt;
+&lt;p&gt;Also update your &lt;code&gt;src/schemas/index.ts&lt;/code&gt; and add&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;export * from &amp;quot;./todoSchema&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now we will create functions for CRUD operations on a todo. So create file &lt;code&gt;todo.ts&lt;/code&gt; inside routes folder and copy this inside&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;src/routes/todo.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import { model } from &amp;quot;mongoose&amp;quot;;
+import { completeRequest } from &amp;quot;../functions/complete&amp;quot;;
+import { Response } from &amp;quot;../models&amp;quot;;
+import { TodoSchema, UserSchema } from &amp;quot;../schemas&amp;quot;;
+const User = model(&amp;quot;User&amp;quot;, UserSchema);
+const Todo = model(&amp;quot;Todo&amp;quot;, TodoSchema);
+
+/**
+ * This function creates a new Todo
+ * @param args
+ * @param user
+ */
+export async function addTodo(args, user) {
+  const promise: Promise&amp;lt;Response&amp;gt; = new Promise((resolve, reject) =&amp;gt; {
+    if (!args.input.title || !args.input.description) {
+      reject(new Response(200, &amp;quot;Please enter both title and description&amp;quot;, {
+        success: false,
+      }));
+    }
+
+    const title = args.input.title.trim();
+    const description = args.input.description.trim();
+    if (!title.length || !description.length) {
+      reject(new Response(200, &amp;quot;Title or description cannot be blank&amp;quot;, {
+        success: false,
+      }));
+    }
+
+    User.findById({ _id: user._id }, (err, user) =&amp;gt; {
+      const todo = new Todo({
+        postedBy: user.id,
+        name: user.name,
+        title,
+        description,
+      });
+
+      todo.id = todo._id;
+      todo.postedByid = user.id;
+      todo.save((err) =&amp;gt; {
+        if (err) {
+          reject(new Response(200, &amp;quot;Error in saving Todo&amp;quot;, {
+            success: false,
+          }));
+        }
+        resolve(new Response(200, &amp;quot;Successfully saved Todo&amp;quot;, {
+          success: true,
+          todo,
+        }));
+      });
+    });
+  });
+  const val = await completeRequest(promise);
+  return val;
+}
+
+/**
+ * This returns all todos for user
+ * @param user
+ */
+export async function getAlltodosForUser(user) {
+  const promise: Promise&amp;lt;Response&amp;gt; = new Promise((resolve) =&amp;gt; {
+    Todo.find({ postedBy: user._id }, (err, todos) =&amp;gt; {
+      resolve(new Response(200, &amp;quot;All todos&amp;quot;, {
+        success: true,
+        todos,
+      }));
+    });
+  });
+  const val = await completeRequest(promise);
+  return val;
+}
+
+/**
+ * This updates the todo information
+ * @param user
+ */
+export async function update(args, user) {
+  const promise: Promise&amp;lt;Response&amp;gt; = new Promise((resolve, reject) =&amp;gt; {
+    const todoId = args.input.id;
+    if (!args.input.title || !args.input.description || !todoId) {
+      reject(new Response(200, &amp;quot;Please enter all fields&amp;quot;, {
+        success: false,
+      }));
+    }
+
+    const title = args.input.title.trim();
+    const description = args.input.description.trim();
+    if (!title.length || !description.length) {
+      reject(new Response(200, &amp;quot;Title or description cannot be blank&amp;quot;, {
+        success: false,
+      }));
+    }
+
+    Todo.findById({ _id: todoId }, (err, todo) =&amp;gt; {
+      if (err) {
+        reject(new Response(200, &amp;quot;Not able to get todo&amp;quot;, {
+          success: false,
+        }));
+      } else if (String(todo.postedBy) !== String(user._id)) {
+        reject(new Response(200, &amp;quot;You don&#39;t have access to update this todo&amp;quot;, {
+          success: false,
+        }));
+      } else {
+        Todo.findOneAndUpdate({ _id: todoId }, { $set: { title, description } }, { new: true }, (err, todo) =&amp;gt; {
+          resolve(new Response(200, &amp;quot;Updated Todo&amp;quot;, {
+            success: true,
+            todo,
+          }));
+        });
+      }
+    });
+  });
+  const val = await completeRequest(promise);
+  return val;
+}
+
+/**
+ * This function deletes the particular todo we want
+ * @param args
+ */
+export async function deleteTodo(args, user) {
+  const promise: Promise&amp;lt;Response&amp;gt; = new Promise((resolve, reject) =&amp;gt; {
+    const todoId = args.id;
+    Todo.findById({ _id: todoId }, (err, data) =&amp;gt; {
+      if (err) {
+        reject(new Response(200, &amp;quot;Not able to get todo&amp;quot;, {
+          success: false,
+        }));
+      } else if (!data) {
+        reject(new Response(200, &amp;quot;Todo already deleted&amp;quot;, {
+          success: false,
+        }));
+      } else if (String(data.postedBy) !== String(user._id)) {
+        reject(new Response(200, &amp;quot;You don&#39;t have access to delete this todo&amp;quot;, {
+          success: false,
+        }));
+      } else {
+        Todo.findOneAndDelete({ _id: todoId }, () =&amp;gt; {
+          resolve(new Response(200, &amp;quot;Successfully deleted todo&amp;quot;, {
+            success: true,
+          }));
+        });
+      }
+    });
+  });
+  const val = await completeRequest(promise);
+  return val;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You might now have idea what we are doing. We have 4 functions.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;addTodo&lt;/em&gt; :- This creates a new todo.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;getAlltodosForUser&lt;/em&gt; :- This returns all todos for an authenticated user.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;update&lt;/em&gt; :- This updates a particular Todo.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;deleteTodo&lt;/em&gt; :- This deletes a particular todo.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;All Functions are authenticated. That is, only authenticated user can make request to perform CRUD operation.&lt;/p&gt;
+&lt;p&gt;Now lets create a graphQL schema for our Todo. Create a file &lt;code&gt;todographqlSchema.ts&lt;/code&gt; inside schemas folder and copy this inside&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;src/schemas/todographqlSchema.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import { GraphQLBoolean, GraphQLID, GraphQLInputObjectType, GraphQLInt, GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLString } from &amp;quot;graphql&amp;quot;;
+
+// User type
+const todoType = new GraphQLObjectType({
+  name: &amp;quot;todo&amp;quot;,
+  fields: {
+    id: { type: GraphQLID },
+    postedByid: { type: GraphQLID },
+    name: { type: GraphQLString },
+    title: { type: GraphQLString },
+    description: { type: GraphQLString },
+    createdAt: { type: GraphQLString },
+    updatedAt: { type: GraphQLString },
+  },
+});
+
+// Data reponse of user
+const DataResponse = new GraphQLObjectType({
+  name: &amp;quot;todoDataResponse&amp;quot;,
+  fields: {
+    success: { type: GraphQLBoolean },
+    todo: { type: todoType },
+    token: { type: GraphQLString },
+  },
+});
+
+// Response from User
+const responseType = new GraphQLObjectType({
+  name: &amp;quot;toDoResponse&amp;quot;,
+  fields: {
+    code: { type: new GraphQLNonNull(GraphQLInt) },
+    message: { type: new GraphQLNonNull(GraphQLString) },
+    data: { type: new GraphQLNonNull(DataResponse) },
+  },
+});
+
+const toDoInput = new GraphQLInputObjectType({
+  name: &amp;quot;todoInput&amp;quot;,
+  fields: {
+    title: { type: GraphQLString },
+    description: { type: GraphQLString },
+  },
+});
+
+const toDoInputUpdate = new GraphQLInputObjectType({
+  name: &amp;quot;todoInputUpdate&amp;quot;,
+  fields: {
+    id: { type: GraphQLString },
+    title: { type: GraphQLString },
+    description: { type: GraphQLString },
+  },
+});
+
+// For getting todo
+
+// Data reponse of user
+const todoUsersDataResponse = new GraphQLObjectType({
+  name: &amp;quot;todoUsersDataResponse&amp;quot;,
+  fields: {
+    success: { type: GraphQLBoolean },
+    todos: { type: new GraphQLList(todoType) },
+  },
+});
+
+const userTodoResponse = new GraphQLObjectType({
+  name: &amp;quot;userTodoResponse&amp;quot;,
+  fields: {
+    code: { type: new GraphQLNonNull(GraphQLInt) },
+    message: { type: new GraphQLNonNull(GraphQLString) },
+    data: { type: new GraphQLNonNull(todoUsersDataResponse) },
+  },
+});
+
+// For deleting Todo
+
+const todoDeleteResponse = new GraphQLObjectType({
+  name: &amp;quot;todoDeleteResponse&amp;quot;,
+  fields: {
+    success: { type: GraphQLBoolean },
+  },
+});
+
+const userTodoDeleteResponse = new GraphQLObjectType({
+  name: &amp;quot;userTodoDeleteResponse&amp;quot;,
+  fields: {
+    code: { type: new GraphQLNonNull(GraphQLInt) },
+    message: { type: new GraphQLNonNull(GraphQLString) },
+    data: { type: new GraphQLNonNull(todoDeleteResponse) },
+  },
+});
+
+export const todographqlSchema = {
+  todoType,
+  DataResponse,
+  responseType,
+  toDoInput,
+  toDoInputUpdate,
+  todoUsersDataResponse,
+  userTodoResponse,
+  userTodoDeleteResponse,
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You might have idea about it, as it is somewhat similar to &lt;code&gt;userLoginSchema.ts&lt;/code&gt; and &lt;code&gt;userRegisterSchema.ts&lt;/code&gt; for graphQL. Also we need to export this file so paste this line inside&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;src/schemas/index.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;export * from &amp;quot;./todographqlSchema&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now we need to finally add queries and mutation inside our &lt;code&gt;graphql.ts&lt;/code&gt;. Like we did for &lt;code&gt;loginUser&lt;/code&gt; and &lt;code&gt;registerUser&lt;/code&gt;. So copy and replace your old code with this inside&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;src/schemas/graphql.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import { GraphQLNonNull, GraphQLObjectType, GraphQLSchema, GraphQLString } from &amp;quot;graphql&amp;quot;;
+import { isAuthenticated } from &amp;quot;../middleware&amp;quot;;
+import { addTodo, deleteTodo, getAlltodosForUser, login, register, update } from &amp;quot;../routes&amp;quot;;
+import { todographqlSchema } from &amp;quot;./todographqlSchema&amp;quot;;
+import { userLoginSchema } from &amp;quot;./userLoginSchema&amp;quot;;
+import { userRegisterSchema } from &amp;quot;./userRegisterSchema&amp;quot;;
+
+// Define the Query type
+const queryType = new GraphQLObjectType({
+  name: &amp;quot;Query&amp;quot;,
+  fields: {
+    loginUser: {
+      type: new GraphQLNonNull(userRegisterSchema.responseType),
+      // `args` describes the arguments that the `user` query accepts
+      args: {
+        input: { type: userLoginSchema.UserInput },
+      },
+      async resolve(_, args) {
+        const val = await login(args);
+        return val;
+      },
+    },
+    profileUser: {
+      type: new GraphQLNonNull(userRegisterSchema.responseType),
+      // `args` describes the arguments that the `user` query accepts
+      async resolve(parent, args, context, info) {
+        const authenticated = await isAuthenticated(context);
+        return authenticated;
+      },
+    },
+    todoUsers: {
+      type: new GraphQLNonNull(todographqlSchema.userTodoResponse),
+      // `args` describes the arguments that the `user` query accepts
+      async resolve(parent, args, context, info) {
+        const authenticated = await isAuthenticated(context);
+        if (authenticated.code !== 200) {
+          return authenticated;
+        } else {
+          const val = await getAlltodosForUser(authenticated.data.user);
+          return val;
+        }
+      },
+    },
+  },
+});
+
+// Defining Mutation
+const mutationType = new GraphQLObjectType({
+  name: &amp;quot;Mutation&amp;quot;,
+  fields: {
+    registerUser: {
+      type: new GraphQLNonNull(userRegisterSchema.responseType),
+      // `args` describes the arguments that the `user` query accepts
+      args: {
+        input: { type: userRegisterSchema.UserInput },
+      },
+      async resolve(_, args) {
+        const val = await register(args);
+        return val;
+      },
+    },
+    addTodo: {
+      type: new GraphQLNonNull(todographqlSchema.responseType),
+      // `args` describes the arguments that the `user` query accepts
+      args: {
+        input: { type: todographqlSchema.toDoInput },
+      },
+      async resolve(parent, args, context, info) {
+        const authenticated = await isAuthenticated(context);
+        if (authenticated.code !== 200) {
+          return authenticated;
+        } else {
+          const val = await addTodo(args, authenticated.data.user);
+          return val;
+        }
+      },
+    },
+    updateTodo: {
+      type: new GraphQLNonNull(todographqlSchema.responseType),
+      // `args` describes the arguments that the `user` query accepts
+      args: {
+        input: { type: todographqlSchema.toDoInputUpdate },
+      },
+      async resolve(parent, args, context, info) {
+        const authenticated = await isAuthenticated(context);
+        if (authenticated.code !== 200) {
+          return authenticated;
+        } else {
+          const val = await update(args, authenticated.data.user);
+          return val;
+        }
+      },
+    },
+    deleteTodo: {
+      type: new GraphQLNonNull(todographqlSchema.userTodoDeleteResponse),
+      // `args` describes the arguments that the `user` query accepts
+      args: {
+        id: { type: GraphQLString },
+      },
+      async resolve(parent, args, context, info) {
+        const authenticated = await isAuthenticated(context);
+        if (authenticated.code !== 200) {
+          return authenticated;
+        } else {
+          const val = await deleteTodo(args, authenticated.data.user);
+          return val;
+        }
+      },
+    },
+  },
+});
+
+export const schema = new GraphQLSchema({
+  query: queryType,
+  mutation: mutationType,
+});
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now lets write tests for our code changes. First we need to create 2 new files inside our test folder.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;profileQueries.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;todoQueries.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Inside &lt;code&gt;src/test/profileQueries.ts&lt;/code&gt; copy this code&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;const query = `query profileUser{
+  profileUser {
+    code
+    message
+    data {
+      success
+      token
+      user {
+        name
+      }
+    }
+  }
+}`;
+
+const profileSuccessfullyQuery = {
+  query: query,
+  operationName: &amp;quot;profileUser&amp;quot;
+  ,
+};
+
+export const profileUser = {
+  profileSuccessfullyQuery,
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Also copy this to &lt;code&gt;src/test/todoQueries.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;const UserRoute = require(&amp;quot;./user-test.spec&amp;quot;);
+const todoId = UserRoute.toDoSavedData;
+
+const query = `mutation addTodo($input: todoInput) {
+  addTodo(input: $input) {
+    code
+    message
+    data {
+      success
+     	todo {
+        id
+        postedByid
+        description
+        updatedAt
+        createdAt
+        name
+      }
+    }
+  }
+}`;
+
+const updateQuery = `mutation updateTodo($input: todoInputUpdate) {
+  updateTodo(input: $input) {
+    code
+    message
+    data {
+      success
+     	todo {
+        id
+        postedByid
+        description
+        updatedAt
+        createdAt
+        name
+        title
+      }
+    }
+  }
+}`;
+
+const deleteQuery = `mutation deleteTodo($id: String) {
+  deleteTodo(id: $id) {
+    code
+    message
+    data {
+      success
+    }
+  }
+}`;
+
+const allTodos = `query todoUsers {
+  todoUsers{
+    code
+    message
+    data {
+      success
+      todos {
+        title
+        description
+      }
+    }
+  }
+}`;
+
+const toDoSuccessfullyQuery = {
+  query: query,
+  operationName: &amp;quot;addTodo&amp;quot;
+  ,
+  variables: {
+    input: {
+      title: &amp;quot;Test title&amp;quot;,
+      description: &amp;quot;test description&amp;quot;,
+    },
+  },
+};
+
+const toDoFailNotitleOrDescyQuery = {
+  query: query,
+  operationName: &amp;quot;addTodo&amp;quot;
+  ,
+  variables: {
+    input: {
+      title: &amp;quot;&amp;quot;,
+      description: &amp;quot;&amp;quot;,
+    },
+  },
+};
+
+const toDoFailNotitleQuery = {
+  query: query,
+  operationName: &amp;quot;addTodo&amp;quot;
+  ,
+  variables: {
+    input: {
+      title: &amp;quot;   &amp;quot;,
+      description: &amp;quot;dasdasda&amp;quot;,
+    },
+  },
+};
+
+const toDoUpdateQuery = {
+  query: updateQuery,
+  operationName: &amp;quot;updateTodo&amp;quot;
+  ,
+  variables: {
+    input: {
+      id: &amp;quot;anything&amp;quot;,
+      title: &amp;quot;Test title&amp;quot;,
+      description: &amp;quot;test description&amp;quot;,
+    },
+  },
+};
+
+const toDoFailNoIdUpdateQuery = {
+  query: updateQuery,
+  operationName: &amp;quot;updateTodo&amp;quot;
+  ,
+  variables: {
+    input: {
+      id: &amp;quot;&amp;quot;,
+      title: &amp;quot;fsdfs&amp;quot;,
+      description: &amp;quot;fsdsdf&amp;quot;,
+    },
+  },
+};
+
+const toDoFailNotitleOrDescUpdateQuery = {
+  query: updateQuery,
+  operationName: &amp;quot;updateTodo&amp;quot;
+  ,
+  variables: {
+    input: {
+      id: &amp;quot;anything&amp;quot;,
+      title: &amp;quot;  &amp;quot;,
+      description: &amp;quot;   &amp;quot;,
+    },
+  },
+};
+
+const toDoFailDeleteQuery = {
+  query: deleteQuery,
+  operationName: &amp;quot;deleteTodo&amp;quot;
+  ,
+  variables: {
+    id: &amp;quot;anything&amp;quot;,
+  },
+};
+
+const TodoAllQuery = {
+  query: allTodos,
+  operationName: &amp;quot;todoUsers&amp;quot;
+  ,
+};
+
+export const todoQueries = {
+  toDoSuccessfullyQuery,
+  toDoFailNotitleOrDescyQuery,
+  toDoFailNotitleQuery,
+  toDoUpdateQuery,
+  toDoFailNoIdUpdateQuery,
+  toDoFailNotitleOrDescUpdateQuery,
+  toDoFailDeleteQuery,
+  updateQuery,
+  deleteQuery,
+  TodoAllQuery,
+};
+view raw
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We need to update our user-test.spec.ts file. This file is very big, so open the link given below and copy the file into your &lt;em&gt;&lt;a href=&#34;https://github.com/knrt10/Todo-backendAPI/blob/master/src/test/user-test.spec.ts&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;src/test/user-test.spec.ts&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;Lets run our test by running npm run build &amp;amp;&amp;amp; npm run coverage. Make sure your MongoDB is up and running. You will get this output.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*xnnQGSOuzh5amiyAUu4SUw.png&#34; alt=&#34;Still 💯 code coverage 😉&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;Still 💯 code coverage 😉&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;accessing-the-api&#34;&gt;Accessing the API&lt;/h2&gt;
+&lt;p&gt;First check your mongoDB server is up and running. Then start your server by running the following command&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;npm start&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Now to access the API of application open your &lt;a href=&#34;https://github.com/prisma/graphql-playground&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;GraphQL-Playground&lt;/a&gt; and enter url &lt;a href=&#34;http://localhost:3000/graphql&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;http://localhost:3000/graphql&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;creating-a-todo&#34;&gt;Creating a Todo&lt;/h3&gt;
+&lt;p&gt;Enter Query&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;mutation addTodo($input: todoInput) {
+  addTodo(input: $input) {
+    code
+    message
+    data {
+      success
+      todo {
+        id
+        postedByid
+        description
+        updatedAt
+        createdAt
+        name
+      }
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and then query variable&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;input&amp;quot;: {
+    &amp;quot;title&amp;quot;: &amp;quot;This is a test todo&amp;quot;,
+    &amp;quot;description&amp;quot;: &amp;quot;Lets see if this works&amp;quot;
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Important:-&lt;/strong&gt; You need to set &lt;em&gt;HTTP HEADERS&lt;/em&gt;. You can get this token with the use of login API.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;query loginUser($input: UserInputLogin) {
+  loginUser(input: $input) {
+    data {
+      token
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and then query variable&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;input&amp;quot;: {
+    &amp;quot;username&amp;quot;: &amp;quot;knrt10&amp;quot;,
+    &amp;quot;password&amp;quot;: &amp;quot;test&amp;quot;
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;From this response copy the token and then copy this code to your &lt;em&gt;HTTP HEADERS&lt;/em&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;x-access-token&amp;quot;: &amp;quot;your access token from login API&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Then hit play button, you will get response like this. Try removing the token or changing token to something else and see the response.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*1B0JXQ1Ht7_aua8XOuZKUw.png&#34; alt=&#34;creating a Todo&#34;&gt;&lt;em&gt;creating a Todo&lt;/em&gt;&lt;/p&gt;
+&lt;h3 id=&#34;updating-a-todo&#34;&gt;Updating a Todo&lt;/h3&gt;
+&lt;p&gt;Enter Query&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;mutation updateTodo($input: todoInputUpdate) {
+  updateTodo(input: $input) {
+    code
+    message
+    data {
+      success
+      todo {
+        id
+        postedByid
+        description
+        updatedAt
+        createdAt
+        name
+        title
+      }
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and then query variable. You can get the id from the todo you created before.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;input&amp;quot;: {
+    &amp;quot;id&amp;quot;: &amp;quot;id of your todo you created before&amp;quot;,
+    &amp;quot;title&amp;quot;: &amp;quot;Second check?&amp;quot;,
+    &amp;quot;description&amp;quot;: &amp;quot;Yaaho.&amp;quot;
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You also need to set header like above. After that when you hit play button you will get this response&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*Vx7r5F3dFriIgOchHbKIfg.png&#34; alt=&#34;updating a Todo&#34;&gt;&lt;em&gt;updating a Todo&lt;/em&gt;&lt;/p&gt;
+&lt;h3 id=&#34;getting-all-todo&#34;&gt;Getting all Todo&lt;/h3&gt;
+&lt;p&gt;Enter Query&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;query todoUsers {
+  todoUsers{
+    code
+    message
+    data {
+      success
+      todos {
+        title
+        description
+        id
+      }
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and then set &lt;em&gt;HTTP HEADERS&lt;/em&gt; like above API.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;x-access-token&amp;quot;: &amp;quot;Your access token&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;After that when you hit play button you will get this response&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*AadeoCY3Nbpp24uSCjgomQ.png&#34; alt=&#34;All todos for users&#34;&gt;&lt;em&gt;All todos for users&lt;/em&gt;&lt;/p&gt;
+&lt;h3 id=&#34;deleting-a-todo&#34;&gt;Deleting a Todo&lt;/h3&gt;
+&lt;p&gt;Enter Query&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;mutation deleteTodo($id: String) {
+  deleteTodo(id: $id) {
+    code
+    message
+    data {
+      success
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and then query variable. You can get the id from the todo you created before.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;id&amp;quot;: &amp;quot;5c25156f70d37365ede03609&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You also need to set header like above. After that when you hit play button you will get this response&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*hqzW3K_Ie0M6Lp23J7B5NA.png&#34; alt=&#34;deleting a Todo&#34;&gt;&lt;em&gt;deleting a Todo&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;That is for this part. In this part you learnt following things:-&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;How to write Schema for GraphQL.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How to create Schema for Todo and link it with a User&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Perform CRUD operation on a Todo using GraphQL.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How to write clean code.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How maintain 💯 code coverage 😉.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;You can see it took &lt;strong&gt;33 tests&lt;/strong&gt; to run in about &lt;strong&gt;804ms.&lt;/strong&gt; Which is less than a second. It shows how fast and precise our code is.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;code-for-this-series&#34;&gt;&lt;strong&gt;Code for this series&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;Code is open sourced on &lt;a href=&#34;https://github.com/knrt10/Todo-backendAPI&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Github&lt;/a&gt; under MIT license. Feel free to use it as reference if you are stuck anywhere.&lt;/p&gt;
+&lt;h2 id=&#34;support&#34;&gt;Support&lt;/h2&gt;
+&lt;p&gt;I wrote this series of articles by using my free time. A little motivation and support helps me a lot. If you like this nifty hack you can support me by doing any (or all 😉 ) of the following:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Follow me on &lt;a href=&#34;http://github.com/knrt10/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Github&lt;/a&gt; for more such projects.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;⭐️ Star it on &lt;a href=&#34;https://github.com/knrt10/Todo-backendAPI&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Github&lt;/a&gt; and make it trend so that other people can know about my project.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;did-you-find-this-page-helpful-consider-sharing-it-&#34;&gt;Did you find this page helpful? Consider sharing it 🙌&lt;/h3&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Part 2:- API using GraphQL and Node.js</title>
+      <link>/post/part-2-api-using-graphql/</link>
+      <pubDate>Sun, 30 Dec 2018 00:00:00 +0000</pubDate>
+      <guid>/post/part-2-api-using-graphql/</guid>
+      <description>&lt;p&gt;This is Article 2 for this series. You can find &lt;a href=&#34;https://knrt10.netlify.app/post/part-1-api-using-graphql/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;first article here&lt;/a&gt;. Our task now is to setup our graphQL API and work with it.&lt;/p&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;nav id=&#34;TableOfContents&#34;&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href=&#34;#about-this-article&#34;&gt;About this Article&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#graphql-is-the-better-rest&#34;&gt;GraphQL is the better REST&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#data-fetching-with-rest-vs-graphql&#34;&gt;Data Fetching with REST vs GraphQL&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#no-more-over-and-underfetching&#34;&gt;No more Over and Underfetching&lt;/a&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;a href=&#34;#overfetching-downloading-superfluous-data&#34;&gt;Overfetching: Downloading superfluous data&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&#34;#underfetching-and-the-n1-problem&#34;&gt;Underfetching and the n+1 problem&lt;/a&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#benefits-of-a-schema--type-system&#34;&gt;Benefits of a Schema &amp;amp; Type System&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#setting-up-graphql&#34;&gt;Setting up GraphQL&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#accessing-the-api&#34;&gt;Accessing the API&lt;/a&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;a href=&#34;#registering-user-to-database&#34;&gt;&lt;strong&gt;Registering User to Database&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&#34;#login-api&#34;&gt;&lt;strong&gt;Login API&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#docker-users&#34;&gt;Docker Users&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#commiting-our-changes&#34;&gt;Commiting our changes&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#conclusion&#34;&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#support&#34;&gt;Support&lt;/a&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;a href=&#34;#did-you-find-this-page-helpful-consider-sharing-it-&#34;&gt;Did you find this page helpful? Consider sharing it 🙌&lt;/a&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;
+&lt;h2 id=&#34;about-this-article&#34;&gt;About this Article&lt;/h2&gt;
+&lt;p&gt;In this article you will learn the following things:-&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;About GraphQL and why to use it&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Setup GraphQL&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Register User to Database&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Login User and get token using JWT&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Write tests for the above setup&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;graphql-is-the-better-rest&#34;&gt;GraphQL is the better REST&lt;/h2&gt;
+&lt;p&gt;Over the past decade, &lt;a href=&#34;https://en.wikipedia.org/wiki/Representational_state_transfer&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;REST&lt;/a&gt; has become the standard (yet a fuzzy one) for designing web APIs. It offers some great ideas, such as &lt;em&gt;stateless servers&lt;/em&gt; and &lt;em&gt;structured access to resources&lt;/em&gt;. However, REST APIs have shown to be too inflexible to keep up with the rapidly changing requirements of the clients that access them.&lt;/p&gt;
+&lt;p&gt;GraphQL was developed to cope with the need for more flexibility and efficiency! It solves many of the shortcomings and inefficiencies that developers experience when interacting with REST APIs.&lt;/p&gt;
+&lt;p&gt;To illustrate the major differences between REST and GraphQL when it comes to fetching data from an API, let’s consider a simple example scenario: In a blogging application, an app needs to display the titles of the posts of a specific user. The same screen also displays the names of the last 3 followers of that user. How would that situation be solved with REST and GraphQL?&lt;/p&gt;
+&lt;h2 id=&#34;data-fetching-with-rest-vs-graphql&#34;&gt;Data Fetching with REST vs GraphQL&lt;/h2&gt;
+&lt;p&gt;With a REST API, you would typically gather the data by accessing multiple endpoints. In the example, these could be &lt;code&gt;/users/&amp;lt;id&amp;gt;&lt;/code&gt; endpoint to fetch the initial user data. Secondly, there’s likely to be a &lt;code&gt;/users/&amp;lt;id&amp;gt;/posts&lt;/code&gt; endpoint that returns all the posts for a user. The third endpoint will then be the /&lt;code&gt;users/&amp;lt;id&amp;gt;/followers&lt;/code&gt; that returns a list of followers per user.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/4156/1*FM6Y3Qu__9IsbZRZt5bHAA.png&#34; alt=&#34;Image taken from other source&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;Image taken from other source&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;In GraphQL on the other hand, you’d simply send a single query to the GraphQL server that includes the concrete data requirements. The server then responds with a JSON object where these requirements are fulfilled.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/3132/1*9xVwRy6KPILYa5iLoQZnOA.png&#34; alt=&#34;Image taken from other source&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;Image taken from other source&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;no-more-over-and-underfetching&#34;&gt;No more Over and Underfetching&lt;/h2&gt;
+&lt;p&gt;One of the most common problems with REST is that of over- and underfetching. This happens because the only way for a client to download data is by hitting endpoints that return &lt;em&gt;fixed&lt;/em&gt; data structures. It’s very difficult to design the API in a way that it’s able to provide clients with their exact data needs.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;“Think in graphs, not endpoints.” &lt;a href=&#34;http://www.graphql.com/articles/4-years-of-graphql-lee-byron&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Lessons From 4 Years of GraphQL&lt;/a&gt; by &lt;a href=&#34;https://twitter.com/leeb&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Lee Byron&lt;/a&gt;, GraphQL Co-Inventor.&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;overfetching-downloading-superfluous-data&#34;&gt;Overfetching: Downloading superfluous data&lt;/h3&gt;
+&lt;p&gt;&lt;em&gt;Overfetching&lt;/em&gt; means that a client downloads more information than is actually required in the app. Imagine for example a screen that needs to display a list of users only with their names. In a REST API, this app would usually hit the &lt;code&gt;/users&lt;/code&gt; endpoint and receive a JSON array with user data. This response however might contain more info about the users that are returned, e.g. their birthdays or addresses - information that is useless for the client because it only needs to display the users’ names.&lt;/p&gt;
+&lt;h3 id=&#34;underfetching-and-the-n1-problem&#34;&gt;Underfetching and the n+1 problem&lt;/h3&gt;
+&lt;p&gt;Another issue is &lt;em&gt;underfetching&lt;/em&gt; and the &lt;em&gt;n+1&lt;/em&gt; requests problem. Underfetching generally means that a specific endpoint doesn’t provide enough of the required information. The client will have to make additional requests to fetch everything it needs. This can escalate to a situation where a client needs to first download a list of elements, but then needs to make one additional request per element to fetch the required data.&lt;/p&gt;
+&lt;p&gt;As an example, consider the same app would also need to display the last three followers per user. The API provides the additional endpoint &lt;code&gt;/users/&amp;lt;user-id&amp;gt;/followers&lt;/code&gt;. In order to be able to display the required information, the app will have to make one request to the &lt;code&gt;/users&lt;/code&gt; endpoint and then hit the &lt;code&gt;/users/&amp;lt;user-id&amp;gt;/followers&lt;/code&gt; endpoint for &lt;em&gt;each&lt;/em&gt; user.&lt;/p&gt;
+&lt;h2 id=&#34;benefits-of-a-schema--type-system&#34;&gt;Benefits of a Schema &amp;amp; Type System&lt;/h2&gt;
+&lt;p&gt;GraphQL uses a strong type system to define the capabilities of an API. All the types that are exposed in an API are written down in a &lt;em&gt;schema&lt;/em&gt; using the GraphQL Schema Definition Language (SDL). This schema serves as the contract between the client and the server to define how a client can access the data.&lt;/p&gt;
+&lt;p&gt;Once the schema is defined, the teams working on frontend and backends can do their work without further communication since they both are aware of the definite structure of the data that’s sent over the network.&lt;/p&gt;
+&lt;p&gt;Frontend teams can easily test their applications by mocking the required data structures. Once the server is ready, the switch can be flipped for the client apps to load the data from the actual API.&lt;/p&gt;
+&lt;h2 id=&#34;setting-up-graphql&#34;&gt;Setting up GraphQL&lt;/h2&gt;
+&lt;p&gt;I hope I taught you little bit about graphQL, to know more you can check out &lt;a href=&#34;https://graphql.org/learn/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;here&lt;/a&gt;. GraphQL is a query language for your API, and a server-side runtime for executing queries by using a type system you define for your data. GraphQL isn’t tied to any specific database or storage engine and is instead backed by your existing code and data. A GraphQL service is created by defining types and fields on those types, then providing functions for each field on each type. We will be using &lt;a href=&#34;https://github.com/graphql/express-graphql&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;express-graphql&lt;/a&gt; for our application. So run this command in your terminal&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;npm i --quiet graphql express-graphql --save&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Non npm users just copy this to &lt;code&gt;package.json&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;&amp;quot;express-graphql&amp;quot;: &amp;quot;^0.7.1&amp;quot;,
+&amp;quot;graphql&amp;quot;: &amp;quot;^14.0.2&amp;quot;,
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We will require our installed module and use this, so now copy this to your &lt;code&gt;src/app.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;const graphqlHTTP = require(&amp;quot;express-graphql&amp;quot;);
+import { schema } from &amp;quot;./schemas&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Also change our member function &lt;code&gt;private this.initAppRoutes() {}&lt;/code&gt; in &lt;code&gt;src/app.ts&lt;/code&gt; to the code given below.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;private initAppRoutes() {
+  this.app.use(&amp;quot;/graphql&amp;quot;, graphqlHTTP({
+    schema, 
+    graphiql: true,
+  }));
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You will encounter some error, so lets work and solve them. Firstly, we need to create a schemas folder inside src. Then create a 5 files inside it&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;userSchema.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;graphql.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;userLoginSchema.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;userRegisterSchema.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;index.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Inside &lt;code&gt;src/schemas/userSchema.ts&lt;/code&gt; copy this&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import bcrypt = require(&amp;quot;bcrypt-nodejs&amp;quot;);
+import { Schema } from &amp;quot;mongoose&amp;quot;;
+import mongoose = require(&amp;quot;mongoose&amp;quot;);
+
+mongoose.Promise = global.Promise;
+
+/**
+ * This is Schema for User
+ * @constant {UserSchema}
+ */
+export const UserSchema = new Schema({
+  id: {
+    type: String,
+  },
+  username: {
+    type: String,
+    trim: true,
+    unique: true,
+    select: true,
+  },
+  name: {
+    type: String,
+    select: true,
+    required: true,
+  },
+  password: {
+    type: String,
+    select: false,
+  },
+}, {
+  timestamps: {},
+});
+
+UserSchema.methods.generateHash = function(password): boolean {
+  return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
+};
+
+UserSchema.methods.validPassword = function(password): boolean {
+  return bcrypt.compareSync(password, this.password);
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;This file defines mongoose schema for our database.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 1–3:-&lt;/em&gt; Requiring necessary module.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 11–32:-&lt;/em&gt; We are exporting our schema on line 11. On the same line we create a new Schema with properties specified below. Lets expain username property. username will be of type String and it will be unique. What select property does that is when we call this schema it will show the property of user which have select as true. You may notice we have specified select: false for password on &lt;em&gt;line 28&lt;/em&gt;. It means we won’t be getting password by default for any queries we execute for user.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 34–40:-&lt;/em&gt; We defined 2 methods for users to generate a hashed password and validate that password.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Inside &lt;code&gt;src/schemas/graphql.ts&lt;/code&gt; copy this&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import { GraphQLNonNull, GraphQLObjectType, GraphQLSchema } from &amp;quot;graphql&amp;quot;;
+import { login, register } from &amp;quot;../routes&amp;quot;;
+import { userLoginSchema } from &amp;quot;./userLoginSchema&amp;quot;;
+import { userRegisterSchema } from &amp;quot;./userRegisterSchema&amp;quot;;
+
+// Define the Query type
+const queryType = new GraphQLObjectType({
+  name: &amp;quot;Query&amp;quot;,
+  fields: {
+    loginUser: {
+      type: new GraphQLNonNull(userRegisterSchema.responseType),
+      // `args` describes the arguments that the `user` query accepts
+      args: {
+        input: { type: userLoginSchema.UserInput },
+      },
+      async resolve(_, args) {
+        const val = await login(args);
+        return val;
+      },
+    },
+  },
+});
+
+// Defining Mutation
+const mutationType = new GraphQLObjectType({
+  name: &amp;quot;Mutation&amp;quot;,
+  fields: {
+    registerUser: {
+      type: new GraphQLNonNull(userRegisterSchema.responseType),
+      // `args` describes the arguments that the `user` query accepts
+      args: {
+        input: { type: userRegisterSchema.UserInput },
+      },
+      async resolve(_, args) {
+        const val = await register(args);
+        return val;
+      },
+    },
+  },
+});
+
+export const schema = new GraphQLSchema({
+  query: queryType,
+  mutation: mutationType,
+});
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;In this file we are defining our schema for graphQL here.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 7–22:-&lt;/em&gt; We define querytype as type query. In this we will be defining all our queries. fileds property tell all queries we can use. Line 10–15 will be like this for example.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;query loginUser($input userInputLogin) {
+loginUser(input: $input){}
+where $input is
+{
+input {
+username: &amp;quot;anything&amp;quot;,
+password: &amp;quot;anything,
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;. After this when query is written and input is provided line 16 will execute and it will asynchronously execute resolve function which is provided 2 arguments. args contains the input that we provided. After we wait for our login result as login returns a promise. We return the value on line 18. Similarly &lt;em&gt;line 25–40&lt;/em&gt; work but it is of type mutation, it is somewhat like POST request.&lt;/p&gt;
+&lt;p&gt;Inside &lt;code&gt;src/schemas/userLoginSchema.ts&lt;/code&gt; copy this&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import { GraphQLInputObjectType, GraphQLString } from &amp;quot;graphql&amp;quot;;
+
+// User input is getting input from user
+const UserInput = new GraphQLInputObjectType({
+  name: &amp;quot;UserInputLogin&amp;quot;,
+  fields: {
+    username: { type: GraphQLString },
+    password: { type: GraphQLString },
+  },
+});
+
+export const userLoginSchema = {
+  UserInput,
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;In this file we define the login Schema. It will be the return type of our input that we are providing.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Inside &lt;code&gt;src/schemas/userRegisterSchema.ts&lt;/code&gt; copy this&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import { GraphQLBoolean, GraphQLID, GraphQLInputObjectType, GraphQLInt, GraphQLNonNull, GraphQLObjectType, GraphQLString } from &amp;quot;graphql&amp;quot;;
+
+// User type
+const userType = new GraphQLObjectType({
+  name: &amp;quot;User&amp;quot;,
+  fields: {
+    id: { type: GraphQLID },
+    username: { type: GraphQLString },
+    name: { type: GraphQLString },
+    password: { type: GraphQLString },
+    token: { type: GraphQLString },
+    createdAt: { type: GraphQLString },
+    updatedAt: { type: GraphQLString },
+  },
+});
+
+// Data reponse of user
+const DataResponse = new GraphQLObjectType({
+  name: &amp;quot;DataResponse&amp;quot;,
+  fields: {
+    success: { type: GraphQLBoolean },
+    user: { type: userType },
+    token: { type: GraphQLString },
+  },
+});
+
+// Response from User
+const responseType = new GraphQLObjectType({
+  name: &amp;quot;Response&amp;quot;,
+  fields: {
+    code: { type: new GraphQLNonNull(GraphQLInt) },
+    message: { type: new GraphQLNonNull(GraphQLString) },
+    data: { type: new GraphQLNonNull(DataResponse) },
+  },
+});
+
+// User input is getting input from user
+const UserInput = new GraphQLInputObjectType({
+  name: &amp;quot;UserInputRegister&amp;quot;,
+  fields: {
+    username: { type: GraphQLString },
+    name: { type: GraphQLString },
+    password: { type: GraphQLString },
+  },
+});
+
+export const userRegisterSchema = {
+  userType,
+  DataResponse,
+  responseType,
+  UserInput,
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;In this file we define the register Schema. It will be the return type of our input that we are providing.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;And finally copy this to &lt;code&gt;src/schemas/index.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;export * from &amp;quot;./userSchema&amp;quot;;
+export * from &amp;quot;./graphql&amp;quot;;
+export * from &amp;quot;./userRegisterSchema&amp;quot;;
+export * from &amp;quot;./userLoginSchema&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You will be getting error Cannot find module &lt;code&gt;&#39;../routes&#39;&lt;/code&gt;. Don’t worry we will fix it later. Let’s first create some important things. Create a folder models and 2 files inside it&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;response.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;index.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Copy this inside &lt;code&gt;src/models/response.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;export class Response {
+  public code: number;
+  public message: string;
+  public data: any;
+  constructor(code: number, message: string, data: any) {
+    this.code = code;
+    this.message = message;
+    this.data = data;
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Copy this inside &lt;code&gt;src/models/index.ts&lt;/code&gt; :&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;export * from &amp;quot;./response&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To modulerize our code we will create another folder functions and a file inside it&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;complete.ts&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Copy this inside &lt;code&gt;src/functions/complete.ts&lt;/code&gt; :&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import { Response } from &amp;quot;../models&amp;quot;;
+
+export function completeRequest(promise: Promise&amp;lt;Response&amp;gt;): any {
+  const res = promise.then((response) =&amp;gt; {
+    const finallResponse = {
+      code: response.code,
+      message: response.message,
+      data: response.data,
+    };
+    return finallResponse;
+  }).catch((errorRes) =&amp;gt; {
+    const finallResponse = {
+      code: errorRes.code,
+      message: errorRes.message,
+      data: errorRes.data,
+    };
+    return finallResponse;
+  });
+  return res;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This file returns a promise that contains final response of data. We resolve this promise in our &lt;code&gt;graphql.ts&lt;/code&gt; file.&lt;/p&gt;
+&lt;p&gt;Before solving our routes folder issue we will first create a folder called interface and then create 2 files inside it, given below:-&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;userInterface.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;index.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;One of TypeScript’s core principles is that type-checking focuses on the &lt;em&gt;shape&lt;/em&gt; that values have. This is sometimes called “duck typing” or “structural subtyping”. In TypeScript, interfaces fill the role of naming these types, and are a powerful way of defining contracts within your code as well as contracts with code outside of your project.&lt;/p&gt;
+&lt;p&gt;copy this inside &lt;code&gt;src/interfaces/userInteface.ts&lt;/code&gt; :&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import {Document} from &amp;quot;mongoose&amp;quot;;
+
+/**
+ * This is interface for user
+ * @interface
+ * @extends {Document}
+ */
+export interface IUser extends Document {
+  // tslint:disable-next-line:semicolon
+  username: string,
+  // tslint:disable-next-line:semicolon
+  password: string,
+  // tslint:disable-next-line:semicolon
+  _id: any,
+  // tslint:disable-next-line:semicolon
+  name: string,
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And copy this inside &lt;code&gt;src/interfaces/index.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;export * from &amp;quot;./userInterface&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now everthing is complete. Its time to create routes folder. Create 2 files inside it&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;user.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;index.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;And copy this &lt;code&gt;inside src/routes/user.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import jwt = require(&amp;quot;jsonwebtoken&amp;quot;);
+import { model } from &amp;quot;mongoose&amp;quot;;
+import { completeRequest } from &amp;quot;../functions/complete&amp;quot;;
+import { IUser } from &amp;quot;../interfaces&amp;quot;;
+import { Response } from &amp;quot;../models&amp;quot;;
+import { UserSchema } from &amp;quot;../schemas&amp;quot;;
+import { Config } from &amp;quot;../shared&amp;quot;;
+
+const User = model(&amp;quot;User&amp;quot;, UserSchema);
+
+  /**
+   * This is route for registering user in database
+   * @param args
+   */
+
+export async function register(args) {
+  const promise: Promise&amp;lt;Response&amp;gt; = new Promise&amp;lt;Response&amp;gt;((resolve, reject) =&amp;gt; {
+
+    const secret: any = Config.secretKeys.jwtSecret;
+      // getting data from args
+    const username = String(args.input.username).trim();
+    if (!username || !args.input.username || !args.input.name) {
+      reject(new Response(200, &amp;quot;Please fill both username and name&amp;quot;, {
+        success: false,
+      }));
+    } else if (username.length &amp;lt; 4 || args.input.name.trim().length &amp;lt; 4) {
+      reject(new Response(200, &amp;quot;Username and name should be contain atleast 4 characters&amp;quot;, {
+        success: false,
+      }));
+    } else {
+      const name = args.input.name.trim();
+      User.findOne({ username }).then((user: any) =&amp;gt; {
+        if (user !== null) {
+          reject(new Response(200, &amp;quot;username already in use&amp;quot;, {
+            success: false,
+          }));
+        } else {
+          const newUser: any = new User({
+            username,
+            name,
+          });
+
+          newUser.id = newUser._id;
+          // generating new hashed password
+          newUser.password = newUser.generateHash(args.input.password);
+          newUser.save().then((user: IUser) =&amp;gt; {
+
+            const token = jwt.sign({ id: user._id }, secret, {
+              expiresIn: &amp;quot;23h&amp;quot;,
+            });
+
+            resolve(new Response(200, &amp;quot;Successful response&amp;quot;, {
+              success: true,
+              user,
+              token,
+            }));
+          });
+        }
+      });
+    }
+  });
+  const val = await completeRequest(promise);
+  return val;
+}
+
+export async function login(args) {
+  const promise: Promise&amp;lt;Response&amp;gt; = new Promise&amp;lt;Response&amp;gt;((resolve, reject) =&amp;gt; {
+
+    if (!args.input.username || !args.input.password) {
+      reject(new Response(200, &amp;quot;Please enter both field username and password&amp;quot;, {
+        success: false,
+      }));
+    }
+    // Getting data from req.body
+    const username = args.input.username;
+    const secret: any = Config.secretKeys.jwtSecret;
+    // Searching for User in database
+    User.findOne({ username }).select(&amp;quot;password id createdAt updatedAt&amp;quot;).then((user: any) =&amp;gt; {
+      if (!user) {
+        reject(new Response(200, &amp;quot;Sorry, No user found&amp;quot;, {
+          success: false,
+        }));
+      } else {
+        if (!user.validPassword(args.input.password)) {
+          reject(new Response(200, &amp;quot;Incorrect Password&amp;quot;, {
+            success: false,
+          }));
+        } else {
+          const token = jwt.sign({ id: user._id }, secret, {
+            expiresIn: &amp;quot;23h&amp;quot;,
+          });
+          resolve(new Response(200, &amp;quot;Successful response&amp;quot;, {
+            success: true,
+            user,
+            token,
+          }));
+        }
+      }
+    });
+  });
+  const val = await completeRequest(promise);
+  return val;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 1–7:-&lt;/em&gt; We require necessary modules.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 9:-&lt;/em&gt; We create a model for our userSchema.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 16:-&lt;/em&gt; We export our function to register user to database. This function is returning a promise. The parameter args contains input from user.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 22–29:-&lt;/em&gt; We write tests for wrong input from user and reject our promise with our Response class that we created in response.ts.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 32–37:-&lt;/em&gt; If everything from user side looks fine, we check whether the username entered by user is already in database or not. If yes we reject with another new response.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 38–41:-&lt;/em&gt; We create a new User.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Lin 45:-&lt;/em&gt; We hash the password using the method we created in userSchema.ts.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 52–57:-&lt;/em&gt; If everything is fine, we resolve our promise and send the required info.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 62–63:-&lt;/em&gt; Our function completeRequest defined in functions folder, takes a promise and resolves it and send back another promise with some our required data. Then we use use await to wait for our data, until it is returned to us and stored inside val. Then we return val.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Similary like this we are working with login function starting from &lt;em&gt;line 66&lt;/em&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Before running our code, lets create our tests for the code we have written so far. Create 2 files inside src/test&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;registerUserQueries.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;loginUserQueries.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Copy this inside &lt;code&gt;src/test/registerUserQueries.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;const query = `mutation registerUser($input: UserInputRegister) {
+  registerUser(input: $input) {
+    code
+    message
+    data {
+      token
+      success
+      user {
+        id
+        createdAt
+        username
+        name
+        password
+        updatedAt
+      }
+    }
+  }
+}
+`;
+
+const registerSuccessfullyQuery = {
+  query: query,
+  operationName: &amp;quot;registerUser&amp;quot;
+  ,
+  variables: {
+    input: {
+      username: &amp;quot;knrt10&amp;quot;,
+      name: &amp;quot;Kautilya&amp;quot;,
+      password: &amp;quot;test&amp;quot;,
+    },
+  },
+};
+
+const registerSuccessfullyQuerySecondUser = {
+  query: query,
+  operationName: &amp;quot;registerUser&amp;quot;
+  ,
+  variables: {
+    input: {
+      username: &amp;quot;knrt191&amp;quot;,
+      name: &amp;quot;Second&amp;quot;,
+      password: &amp;quot;test&amp;quot;,
+    },
+  },
+};
+
+const registerSuccessfullyQueryThirdUser = {
+  query: query,
+  operationName: &amp;quot;registerUser&amp;quot;
+  ,
+  variables: {
+    input: {
+      username: &amp;quot;knrt1912&amp;quot;,
+      name: &amp;quot;Third&amp;quot;,
+      password: &amp;quot;test&amp;quot;,
+    },
+  },
+};
+
+const registerFailNoUsernameQuery = {
+  query: query ,
+  operationName: &amp;quot;registerUser&amp;quot;
+  ,
+  variables: {
+    input: {
+      username: &amp;quot;&amp;quot;,
+      name: &amp;quot;Kautilya&amp;quot;,
+      password: &amp;quot;test&amp;quot;,
+    },
+  },
+};
+
+const registerFailSmallUsernameQuery = {
+  query: query,
+  operationName: &amp;quot;registerUser&amp;quot;
+  ,
+  variables: {
+    input: {
+      username: &amp;quot;d   &amp;quot;,
+      name: &amp;quot;Kautilya&amp;quot;,
+      password: &amp;quot;test&amp;quot;,
+    },
+  },
+};
+
+export const registerqueries = {
+  registerSuccessfullyQuery,
+  registerSuccessfullyQuerySecondUser,
+  registerSuccessfullyQueryThirdUser,
+  registerFailNoUsernameQuery,
+  registerFailSmallUsernameQuery,
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt; In this file we are creating a demo possible queries for register API which user can pass. We use this in our tests.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 1–19:-&lt;/em&gt; It contains our query that we will use later to register user, but in our tests we need our code to automatically create user, so we use this method.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 21–32:-&lt;/em&gt; We are defining a constant that is just an example of data we will be sending to our test route. It is using query that we defined on &lt;em&gt;line 1.&lt;/em&gt; The operation name will be registerUser. Also we are passing variables to our query declared on &lt;em&gt;line 25.&lt;/em&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Rest file contains same type of different cases that a user can enter. We will test those all cases in our tests.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;In the end we are exporting all the constants that we declared in this file, so that they can be used in other files.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;And copy this inside &lt;code&gt;src/test/loginUserQueries.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;const query = `query loginUser($input: UserInputLogin) {
+  loginUser(input: $input) {
+    code,
+    message,
+    data {
+      success
+      user {
+        id
+        name
+        username
+        password
+      }
+      token
+    }
+  }
+}`;
+
+const loginSuccessfullyQuery = {
+  query: query,
+  operationName: &amp;quot;loginUser&amp;quot;
+  ,
+  variables: {
+    input: {
+      username: &amp;quot;knrt10&amp;quot;,
+      password: &amp;quot;test&amp;quot;,
+    },
+  },
+};
+
+const loginFailWrongPasswordQuery = {
+  query: query,
+  operationName: &amp;quot;loginUser&amp;quot;
+  ,
+  variables: {
+    input: {
+      username: &amp;quot;knrt10&amp;quot;,
+      password: &amp;quot;test1&amp;quot;,
+    },
+  },
+};
+
+const loginFailNopassWordorUsernameQuery = {
+  query: query,
+  operationName: &amp;quot;loginUser&amp;quot;
+  ,
+  variables: {
+    input: {
+      username: &amp;quot;&amp;quot;,
+      password: &amp;quot;&amp;quot;,
+    },
+  },
+};
+
+const loginFailwrongUsernamQuery = {
+  query: query,
+  operationName: &amp;quot;loginUser&amp;quot;
+  ,
+  variables: {
+    input: {
+      username: &amp;quot; bla &amp;quot;,
+      password: &amp;quot;shit this is bro&amp;quot;,
+    },
+  },
+};
+
+export const loginQueries = {
+  loginSuccessfullyQuery,
+  loginFailWrongPasswordQuery,
+  loginFailNopassWordorUsernameQuery,
+  loginFailwrongUsernamQuery,
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt; In this file we are creating a demo possible queries for login API which user can pass. We use this in our tests.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Just like registerQueries, this file has a query declared on line 1, which we will use in our test.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Cases that user can enter are declared in rest of file and then finally exported to be used later on in our test file.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Now you need to make changes to your &lt;code&gt;src/test/user-test.spec.ts&lt;/code&gt; Update your whole file to this.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import chai = require(&amp;quot;chai&amp;quot;);
+import chaiAsPromised = require(&amp;quot;chai-as-promised&amp;quot;);
+import chaiHttp = require(&amp;quot;chai-http&amp;quot;);
+import { suite, test } from &amp;quot;mocha-typescript&amp;quot;;
+import { model } from &amp;quot;mongoose&amp;quot;;
+import sinon = require(&amp;quot;sinon&amp;quot;);
+import { Response } from &amp;quot;../models&amp;quot;;
+import { UserSchema } from &amp;quot;../schemas&amp;quot;;
+import { TodoApp } from &amp;quot;../server&amp;quot;;
+import { Config } from &amp;quot;../shared&amp;quot;;
+import { loginQueries } from &amp;quot;./loginUserQueries&amp;quot;;
+import { registerqueries } from &amp;quot;./registerUserQueries&amp;quot;;
+
+const User = model(&amp;quot;User&amp;quot;, UserSchema);
+// starting the server
+const server: TodoApp = new TodoApp(process.env.API_PORT || 3001);
+server.startServer();
+
+chai.use(chaiAsPromised);
+chai.use(chaiHttp);
+
+@suite(&amp;quot;User Test class&amp;quot;)
+class UserTests {
+  static user: any;
+
+  static before() {
+    this.testData = {
+      input: {
+        username: &amp;quot;knrt10&amp;quot;,
+        name: &amp;quot;Kautilya&amp;quot;,
+        password: &amp;quot;test&amp;quot;,
+      },
+    };
+  }
+
+  static after() {
+    // Delete User Created So that it does not provide error in next test
+    User.findOneAndDelete({ username: UserTests.testData.input.username }, () =&amp;gt; {
+      process.exit(0);
+    });
+  }
+
+  private static testData: any;
+  private static token: string;
+
+  @test(&amp;quot;Testing Local Connection - try connection for Local mongodb&amp;quot;)
+  public localDb(done) {
+    setTimeout(() =&amp;gt; {
+      Config.dbSettings.localDatabase = true;
+      const mock = sinon.mock(new TodoApp(process.env.API_PORT || 3001), &amp;quot;constructor&amp;quot;);
+      chai.expect(mock.object.infoString).to.deep.equal(&amp;quot;mongodb://&amp;quot; + Config.dbSettings.connectionString + &amp;quot;/&amp;quot; + Config.dbSettings.database);
+      done();
+    }, 100);
+  }
+
+  @test(&amp;quot;Testing Docker Connection - try connection for docker mongodb&amp;quot;)
+  public dockerDb(done) {
+    Config.dbSettings.localDatabase = false;
+    const mock = sinon.mock(new TodoApp(process.env.API_PORT || 3001), &amp;quot;constructor&amp;quot;);
+    chai.expect(mock.object.infoString).to.deep.equal(&amp;quot;mongodb://&amp;quot; + Config.dbSettings.dockerconnectionString + &amp;quot;/&amp;quot; + Config.dbSettings.database);
+    done();
+  }
+
+  @test(&amp;quot;Testing Online Connection - try connection for online mongodb&amp;quot;)
+  public OnlineDb(done) {
+    Config.dbSettings.authEnabled = true;
+    const mock = sinon.mock(new TodoApp(process.env.API_PORT || 3001), &amp;quot;constructor&amp;quot;);
+    chai.expect(mock.object.infoString).to.deep.equal(&amp;quot;mongodb://&amp;quot; + Config.dbSettings.username + &amp;quot;:&amp;quot; + Config.dbSettings.password + &amp;quot;@&amp;quot;
+      + Config.dbSettings.connectionString + &amp;quot;/&amp;quot; + Config.dbSettings.database);
+    done();
+  }
+
+  @test(&amp;quot;POST Register - try Register User Successfuly&amp;quot;)
+  public createUser(done) {
+    chai.request(&amp;quot;http://localhost:&amp;quot; + server.port)
+      .post(&amp;quot;/graphql&amp;quot;)
+      .send(registerqueries.registerSuccessfullyQuery)
+      .end((err, res) =&amp;gt; {
+        chai.expect(res).to.have.status(200);
+        chai.expect(res.body.data.registerUser).to.deep.equal(new Response(200, &amp;quot;Successful response&amp;quot;, {
+          success: true,
+          user: res.body.data.registerUser.data.user,
+          token: res.body.data.registerUser.data.token,
+        }));
+        done();
+      });
+  }
+
+  @test(&amp;quot;POST Register - Don&#39;t register as user already registered&amp;quot;)
+  public dontRegisterUser(done) {
+    chai.request(&amp;quot;http://localhost:&amp;quot; + server.port)
+      .post(&amp;quot;/graphql&amp;quot;)
+      .send(registerqueries.registerSuccessfullyQuery)
+      .end((err, res) =&amp;gt; {
+        chai.expect(res).to.have.status(200);
+        chai.expect(res.body.data.registerUser).to.deep.equal(new Response(200, &amp;quot;username already in use&amp;quot;, {
+          success: false,
+          token: null,
+          user: null,
+        }));
+        done();
+      });
+  }
+
+  @test(&amp;quot;POST Register - try No username field&amp;quot;)
+  public dontCreateUser(done) {
+    chai.request(&amp;quot;http://localhost:&amp;quot; + server.port)
+      .post(&amp;quot;/graphql&amp;quot;)
+      .send(registerqueries.registerFailNoUsernameQuery)
+      .end((err, res) =&amp;gt; {
+        chai.expect(res).to.have.status(200);
+        chai.expect(res.body.data.registerUser).to.deep.equal(new Response(200, &amp;quot;Please fill both username and name&amp;quot;, {
+          success: false,
+          token: null,
+          user: null,
+        }));
+        done();
+      });
+  }
+
+  @test(&amp;quot;POST Register - try username of small length&amp;quot;)
+  public dontCreateUserLessLength(done) {
+    chai.request(&amp;quot;http://localhost:&amp;quot; + server.port)
+      .post(&amp;quot;/graphql&amp;quot;)
+      .send(registerqueries.registerFailSmallUsernameQuery)
+      .end((err, res) =&amp;gt; {
+        chai.expect(res).to.have.status(200);
+        chai.expect(res.body.data.registerUser).to.deep.equal(new Response(200, &amp;quot;Username and name should be contain atleast 4 characters&amp;quot;, {
+          success: false,
+          token: null,
+          user: null,
+        }));
+        done();
+      });
+  }
+
+  @test(&amp;quot;POST Login - try Successful Login&amp;quot;)
+  public login(done) {
+    chai.request(&amp;quot;http://localhost:&amp;quot; + server.port)
+      .post(&amp;quot;/graphql&amp;quot;)
+      .send(loginQueries.loginSuccessfullyQuery)
+      .end((err, res) =&amp;gt; {
+        UserTests.user = res.body.data.loginUser.data.user;
+        UserTests.token = res.body.data.loginUser.data.token;
+        chai.expect(res).to.have.status(200);
+        chai.expect(res.body.data.loginUser).to.deep.equal(new Response(200, &amp;quot;Successful response&amp;quot;, {
+          success: true,
+          user: res.body.data.loginUser.data.user,
+          token: res.body.data.loginUser.data.token,
+        }));
+        done();
+      });
+  }
+
+  @test(&amp;quot;POST Login - try hit the login with incorrect credentials route&amp;quot;)
+  public loginWithIncorrect(done) {
+    chai.request(&amp;quot;http://localhost:&amp;quot; + server.port)
+      .post(&amp;quot;/graphql&amp;quot;)
+      .send(loginQueries.loginFailWrongPasswordQuery)
+      .end((err, res) =&amp;gt; {
+        chai.expect(res).to.have.status(200);
+        chai.expect(res.body.data.loginUser).to.deep.equal(new Response(200, &amp;quot;Incorrect Password&amp;quot;, {
+          success: false,
+          user: null,
+          token: null,
+        }));
+        done();
+      });
+  }
+
+  @test(&amp;quot;POST Login - try hit the login no password&amp;quot;)
+  public wrongInputFields(done) {
+    chai.request(&amp;quot;http://localhost:&amp;quot; + server.port)
+      .post(&amp;quot;/graphql&amp;quot;)
+      .send(loginQueries.loginFailNopassWordorUsernameQuery)
+      .end((err, res) =&amp;gt; {
+        chai.expect(res).to.have.status(200);
+        chai.expect(res.body.data.loginUser).to.deep.equal(new Response(200, &amp;quot;Please enter both field username and password&amp;quot;, {
+          success: false,
+          user: null,
+          token: null,
+        }));
+        done();
+      });
+  }
+
+  @test(&amp;quot;POST Login - try Posting wrong username&amp;quot;)
+  public NoUser(done) {
+    chai.request(&amp;quot;http://localhost:&amp;quot; + server.port)
+      .post(&amp;quot;/graphql&amp;quot;)
+      .send(loginQueries.loginFailwrongUsernamQuery)
+      .end((err, res) =&amp;gt; {
+        chai.expect(res).to.have.status(200);
+        chai.expect(res.body.data.loginUser).to.deep.equal(new Response(200, &amp;quot;Sorry, No user found&amp;quot;, {
+          success: false,
+          user: null,
+          token: null,
+        }));
+        done();
+      });
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 1–12:-&lt;/em&gt; We require all the necessary files and modules.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 14:-&lt;/em&gt; We create a user model for our tests.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 16–17:-&lt;/em&gt; We start the server of our express application.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 26–34:-&lt;/em&gt; before is a method on chai that executes before our tests start running. So anything declared inside it will execute first.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 36–41:-&lt;/em&gt; Similarly like before method, after method is a predefined method in chai. It will be executed after all the tests have run. It does not depend your tests pass or fail. In Our tests are running inside a class, so we need to declare these methods as static which means that it doesn’t have to be instantiated. In this method we are deleting user that we will create in our tests, so that next that we run our test that user is not already present in our database.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 73–87:-&lt;/em&gt; This tests is checking whether user gets successfully registered to database. We create a post request with data we created in our registerUserQueries.ts. And then this code send data to our code written in user.ts and if returns a response. Then we check assertion wheter the response matches with the required response in our test.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Just like this we create different test cases for all possible situation. Just read the message inside &lt;code&gt;@test(&amp;quot;&amp;quot;)&lt;/code&gt;, you will understand what test case it is about.&lt;/p&gt;
+&lt;p&gt;Remember before running tests your mongoDb server is up and running then when you run &lt;code&gt;npm run build &amp;amp;&amp;amp; npm run coverage&lt;/code&gt; you get&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*SnEx8spfI59SUQ-LMMIPAQ.png&#34; alt=&#34;Project setup and tests until now with 💯 code coverage&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;Project setup and tests until now with 💯 code coverage&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;accessing-the-api&#34;&gt;Accessing the API&lt;/h2&gt;
+&lt;p&gt;First check your mongoDB server is up and running. Then start your server by running the following command&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;npm start&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;To access the API of application open your &lt;a href=&#34;https://github.com/prisma/graphql-playground&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;GraphQL-Playground&lt;/a&gt; and enter url &lt;code&gt;http://localhost:3000/graphql&lt;/code&gt;&lt;/p&gt;
+&lt;h3 id=&#34;registering-user-to-database&#34;&gt;&lt;strong&gt;Registering User to Database&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;Enter Query&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;mutation registerUser($input: UserInputRegister) {
+  registerUser(input: $input) {
+    code
+    message
+    data {
+      token
+      success
+      user {
+        id
+        createdAt
+        username
+        name
+        password
+        updatedAt
+      }
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and then query variable&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;input&amp;quot;: {
+    &amp;quot;username&amp;quot;: &amp;quot;knrt10&amp;quot;,
+    &amp;quot;name&amp;quot;: &amp;quot;Kautilya&amp;quot;,
+    &amp;quot;password&amp;quot;: &amp;quot;test&amp;quot;
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Then hit play button, you will get response like this&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*SRj1ZWuGGqXTwk_ejGAXuQ.png&#34; alt=&#34;registering user to Database&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;registering user to Database&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;login-api&#34;&gt;&lt;strong&gt;Login API&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;Enter Query&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;query loginUser($input: UserInputLogin) {
+  loginUser(input: $input) {
+    code,
+    message,
+    data {
+      success
+      user {
+        id
+        name
+        username
+        password
+      }
+      token
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and then query variable&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;input&amp;quot;: {
+    &amp;quot;username&amp;quot;: &amp;quot;knrt10&amp;quot;,
+    &amp;quot;password&amp;quot;: &amp;quot;test&amp;quot;
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Then after you hit play button you will see this output.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*6m8QJbWW5ZFIo-CO32kfMg.png&#34; alt=&#34;login response&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;login response&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Try playing with it and try to enter wrong data or anything like that. You might find we have covered error for most of the usual cases.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2852/1*5l8uuNHIrTHYNKXM_Be0LA.gif&#34; alt=&#34;playing with GraphQL Playground 📹&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;playing with GraphQL Playground 📹&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;docker-users&#34;&gt;Docker Users&lt;/h2&gt;
+&lt;p&gt;You need to make all the code changes as above and then just run&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;npm run dockerStart&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;After that you can also excess API of application as above with same URL &lt;a href=&#34;http://localhost:3000/graphql.&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;http://localhost:3000/graphql.&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Then after using don’t forget to stop the container by runnnig npm run dockerStop.&lt;/p&gt;
+&lt;h2 id=&#34;commiting-our-changes&#34;&gt;Commiting our changes&lt;/h2&gt;
+&lt;p&gt;Lets commit our new changes for this part. Copy and run the commands given below inside your git repository. Make sure you are in root folder.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;git add .
+git commit -m &amp;quot;Adding part2 changes&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;That is for this part. In this part you learnt following things:-&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Modularize code.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How to create Mongoose Schema.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Why GraphQL is better than REST.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How to setup GraphQL in node.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How to write Schema for GraphQL.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How and write tests and maintain 💯 code coverage 😉.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;In next part you will create schemas for working with CRUD operation on a Todo, only when you are authenticated.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;support&#34;&gt;Support&lt;/h2&gt;
+&lt;p&gt;I wrote this series of articles by using my free time. A little motivation and support helps me a lot. If you like this nifty hack you can support me by doing any (or all 😉 ) of the following:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Follow me on &lt;a href=&#34;http://github.com/knrt10/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Github&lt;/a&gt; for more such projects.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;⭐️ Star it on &lt;a href=&#34;https://github.com/knrt10/Todo-backendAPI&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Github&lt;/a&gt; and make it trend so that other people can know about my project.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;did-you-find-this-page-helpful-consider-sharing-it-&#34;&gt;Did you find this page helpful? Consider sharing it 🙌&lt;/h3&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Part 1:- API using GraphQL and Node.js</title>
+      <link>/post/part-1-api-using-graphql/</link>
+      <pubDate>Sat, 29 Dec 2018 00:00:00 +0000</pubDate>
+      <guid>/post/part-1-api-using-graphql/</guid>
+      <description>&lt;p&gt;This article is for people who are interested in learning to write optimized code using &lt;strong&gt;GraphQL&lt;/strong&gt; with unit testing using &lt;strong&gt;mocha and chai&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;Before we start, we need to define the functionality of our API. The application will be a simple todo app. It will create a user in a database who will be able to create, get and delete todos. If you don’t understand the code or get stuck somewhere, you can check out the code from my &lt;a href=&#34;https://github.com/knrt10/Todo-backendAPI&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Github repository&lt;/a&gt;.&lt;/p&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;nav id=&#34;TableOfContents&#34;&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href=&#34;#about-the-series&#34;&gt;About the series&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#what-you-will-learn&#34;&gt;What you will learn?&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#in-this-article&#34;&gt;In this Article&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#requirements&#34;&gt;Requirements&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#project-setup&#34;&gt;Project Setup&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#docker-setup&#34;&gt;&lt;strong&gt;Docker Setup&lt;/strong&gt;&lt;/a&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;a href=&#34;#exploring-container-from-within&#34;&gt;Exploring container from within&lt;/a&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#setting-up-express-server&#34;&gt;Setting up Express server&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#commiting-our-changes&#34;&gt;Commiting our changes&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#conclusion&#34;&gt;Conclusion&lt;/a&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;a href=&#34;#did-you-find-this-page-helpful-consider-sharing-it-&#34;&gt;Did you find this page helpful? Consider sharing it 🙌&lt;/a&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;
+&lt;h2 id=&#34;about-the-series&#34;&gt;About the series&lt;/h2&gt;
+&lt;p&gt;This is a series of 3 articles which will help to write production grade code. I wanted to help others who might have faced same problems as me. This article can help a beginner and also to someone who has good knowledge in node.&lt;/p&gt;
+&lt;h2 id=&#34;what-you-will-learn&#34;&gt;What you will learn?&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;TypeScript (if you don’t write it already).&lt;/li&gt;
+&lt;li&gt;Using Docker for Node projects.&lt;/li&gt;
+&lt;li&gt;Writing a GraphQL API instead of REST.&lt;/li&gt;
+&lt;li&gt;Basics of MongoDB.&lt;/li&gt;
+&lt;li&gt;Logging.&lt;/li&gt;
+&lt;li&gt;Working with JWT(Json Web token).&lt;/li&gt;
+&lt;li&gt;Writing tests and working with code coverage.&lt;/li&gt;
+&lt;li&gt;Writing clean code and linting.&lt;/li&gt;
+&lt;li&gt;Writing modular code.&lt;/li&gt;
+&lt;li&gt;Basics of Promises, async and await.&lt;/li&gt;
+&lt;li&gt;Writing production grade code.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;in-this-article&#34;&gt;In this Article&lt;/h2&gt;
+&lt;p&gt;In this article you will be able to do the following things:-&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Setup project&lt;/li&gt;
+&lt;li&gt;Setup docker&lt;/li&gt;
+&lt;li&gt;Write express server and connect to mongodb&lt;/li&gt;
+&lt;li&gt;Write tests for above setup.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;requirements&#34;&gt;Requirements&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://nodejs.org/en/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Node&lt;/a&gt; and npm installed for your OS. We will use node environment to work on this project.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.docker.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Docker&lt;/a&gt; installed for your OS. Along with local working of project, you will learn little bit of docker and how to work on projects if you don’t have node and npm installed.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/prisma/graphql-playground&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;GraphQL-Playground&lt;/a&gt; for testing your API. This is an awesome tool where you will test your APIs and learn how to use this tool.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Important :-&lt;/strong&gt; I will teach how to work with project locally and also how to work with Docker side by side. Those who want to work only with docker, I will refer to them as non npm users. Also we will try to follow TDD(test driven Development) approach.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;project-setup&#34;&gt;Project Setup&lt;/h2&gt;
+&lt;p&gt;Open your development folder and create a new Folder for our project and go to it or copy the following command.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;mkdir graphql-todo&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Now open your code editor inside that folder.&lt;/p&gt;
+&lt;p&gt;If you have &lt;code&gt;npm&lt;/code&gt; installed for your OS run&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;npm init -y&lt;/code&gt;. It will create a package.json file like this&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;
+{
+  &amp;quot;name&amp;quot;: &amp;quot;graphql-todo&amp;quot;,
+  &amp;quot;version&amp;quot;: &amp;quot;1.0.0&amp;quot;,
+  &amp;quot;description&amp;quot;: &amp;quot;&amp;quot;,
+  &amp;quot;main&amp;quot;: &amp;quot;index.js&amp;quot;,
+  &amp;quot;scripts&amp;quot;: {
+    &amp;quot;test&amp;quot;: &amp;quot;echo \&amp;quot;Error: no test specified\&amp;quot; &amp;amp;&amp;amp; exit 1&amp;quot;
+  },
+  &amp;quot;keywords&amp;quot;: [],
+  &amp;quot;author&amp;quot;: &amp;quot;&amp;quot;,
+  &amp;quot;license&amp;quot;: &amp;quot;ISC&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;non npm users just create a &lt;code&gt;package.json&lt;/code&gt; file and copy the above contents. You can edit description to anything you like.&lt;/p&gt;
+&lt;p&gt;We will be writing code in &lt;a href=&#34;http://typescriptlang.org/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Typescript&lt;/a&gt; so we will need something that will compile our code fast and minify the process. So for this we will use &lt;a href=&#34;http://gulpjs.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Gulp&lt;/a&gt;. Run the given command below in your terminal inside the project.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;npm i --quiet gulp gulp-sourcemaps gulp-typescript typescript --save-dev&lt;/code&gt; non npm users copy this to your &lt;code&gt;package.json&lt;/code&gt; file.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;&amp;quot;devDependencies&amp;quot;: {
+  &amp;quot;gulp&amp;quot;: &amp;quot;^4.0.0&amp;quot;,
+  &amp;quot;gulp-sourcemaps&amp;quot;: &amp;quot;^2.6.4&amp;quot;,
+  &amp;quot;gulp-typescript&amp;quot;: &amp;quot;^5.0.0&amp;quot;,
+  &amp;quot;typescript&amp;quot;: &amp;quot;^3.2.2&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now you have &lt;em&gt;gulp&lt;/em&gt; and &lt;em&gt;typescript&lt;/em&gt; installed. We will now create a gulpfile and write our code to minify the process of building the project. Follow the step below.&lt;/p&gt;
+&lt;p&gt;Create a &lt;code&gt;gulpfile.js&lt;/code&gt; inside root directory and copy this code.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;const gulp = require(&amp;quot;gulp&amp;quot;);
+const ts = require(&amp;quot;gulp-typescript&amp;quot;);
+const sourcemaps = require(&amp;quot;gulp-sourcemaps&amp;quot;);
+const tsProject = ts.createProject(&amp;quot;tsconfig.json&amp;quot;, {
+  typescript: require(&amp;quot;typescript&amp;quot;)
+});
+
+gulp.task(&amp;quot;build&amp;quot;, () =&amp;gt; {
+  gulp.src(&amp;quot;process.yml&amp;quot;)
+    .pipe(gulp.dest(&amp;quot;dist&amp;quot;));
+   
+  return tsProject.src()
+    .pipe(sourcemaps.init())
+    .pipe(tsProject())
+    .js
+    .pipe(sourcemaps.write())
+    .pipe(gulp.dest(&amp;quot;dist&amp;quot;));  
+});
+
+gulp.task(&amp;quot;watchTask&amp;quot;, function () {
+  gulp.watch(&amp;quot;src/**/*.ts&amp;quot;, [&amp;quot;build&amp;quot;]);
+});
+
+gulp.task(&amp;quot;default&amp;quot;, gulp.series(&amp;quot;build&amp;quot;));
+gulp.task(&amp;quot;watch&amp;quot;, gulp.series(&amp;quot;build&amp;quot;, &amp;quot;watchTask&amp;quot;));
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 1–3&lt;/em&gt;:- We are requiring our modules.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 4&lt;/em&gt;: We are using API of gulp-typescript and creating our TS project using tsconfig.json file which we will create later.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 8&lt;/em&gt;:- We are using Gulp API task and creating a task name build.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 9–10&lt;/em&gt;:- We are using Gulp API src and taking process.yml file as source(we will create it later) and piping it to our destination folder **dist.**Here &lt;code&gt;gulp.src&lt;/code&gt; creates a readble stream and with the help of node streams we pipe it to a writable stream created by &lt;code&gt;gulp.dest&lt;/code&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 12–17&lt;/em&gt;:- We are copying our whole code as per tsconfig.json and converting it to Javascript and pasting it to &lt;strong&gt;dist&lt;/strong&gt; folder.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 20–22&lt;/em&gt;:- We are creating another task watchTask for watching any changes in our build task.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 24–25&lt;/em&gt;:- We are finally using Gulp’s default API for runnig build task and watch API for watching changes to build and watch task.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Create a &lt;code&gt;tsconfig.json&lt;/code&gt; file in root directory and copy this code.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;compilerOptions&amp;quot;: {
+    &amp;quot;emitDecoratorMetadata&amp;quot;: true,
+    &amp;quot;experimentalDecorators&amp;quot;: true,
+    &amp;quot;outDir&amp;quot;: &amp;quot;./dist&amp;quot;,
+    &amp;quot;moduleResolution&amp;quot;: &amp;quot;node&amp;quot;,
+    &amp;quot;baseUrl&amp;quot;: &amp;quot;./src&amp;quot;,
+    &amp;quot;sourceMap&amp;quot;: true,
+    &amp;quot;pretty&amp;quot;: true,
+    &amp;quot;strictNullChecks&amp;quot;: true,
+    &amp;quot;module&amp;quot;: &amp;quot;commonjs&amp;quot;,
+    &amp;quot;target&amp;quot;: &amp;quot;es6&amp;quot;,
+    &amp;quot;allowJs&amp;quot;: true
+  },
+  &amp;quot;include&amp;quot;: [
+    &amp;quot;src/**/*.ts&amp;quot;
+  ],
+  &amp;quot;exclude&amp;quot;: [
+    &amp;quot;node_modules&amp;quot;
+  ]
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Important&lt;/strong&gt;:- Do notice baseUrl and outDir. &lt;em&gt;baseUrl&lt;/em&gt; is where we will write our TS code and &lt;em&gt;outDir&lt;/em&gt; is where gulp will compile and copy our code to JavaScript.&lt;/p&gt;
+&lt;p&gt;Now create a &lt;code&gt;process.yml&lt;/code&gt; file in root directory and copy this code.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-yaml&#34;&gt;apps:
+  - script    : &#39;app.js&#39;
+    name      : &#39;Backend To-do Application&#39;
+    node_args : &#39;--inspect=0.0.0.0:5858&#39;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We will learn why we are creating this file later on. After this create an empty directory src in our root folder. Up until now you might have project config like this. Those who are going to work only with docker, they will not have &lt;code&gt;package-lock.json&lt;/code&gt; and &lt;code&gt;node_modules&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*1b4XhTSquYNY2iynJfijUw.png&#34; alt=&#34;Project setup until now&#34;&gt;&lt;em&gt;Project setup until now&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;To keep track of our work we will be using &lt;strong&gt;git&lt;/strong&gt;. If not installed you can go through &lt;a href=&#34;https://git-scm.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;git&lt;/a&gt; to install it.&lt;/p&gt;
+&lt;p&gt;In your project initialize your repository as git repository by git init.&lt;/p&gt;
+&lt;p&gt;For working in developement version we will need nodemon and ts-node for reloading our server automatically when any change is made in our file and executing our TS file without building them respectively. We will use &lt;a href=&#34;https://github.com/palantir/tslint&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;TSlint&lt;/a&gt; as our code linter. In your terminal inside project directory run this command.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;npm i --quiet nodemon ts-node tslint tslint-eslint-rules --save-dev&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;&amp;quot;nodemon&amp;quot;: &amp;quot;^1.18.9&amp;quot;,
+&amp;quot;ts-node&amp;quot;: &amp;quot;^7.0.1&amp;quot;,
+&amp;quot;tslint&amp;quot;: &amp;quot;^5.12.0&amp;quot;,
+&amp;quot;tslint-eslint-rules&amp;quot;: &amp;quot;^5.4.0&amp;quot;,
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Create a &lt;code&gt;tslint.json&lt;/code&gt; file inside root directory and copy the code given below.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;defaultSeverity&amp;quot;: &amp;quot;error&amp;quot;,
+  &amp;quot;extends&amp;quot;: [
+    &amp;quot;tslint:recommended&amp;quot;,
+    &amp;quot;tslint-eslint-rules&amp;quot;
+  ],
+  &amp;quot;jsRules&amp;quot;: {},
+  &amp;quot;rules&amp;quot;: {
+    &amp;quot;object-literal-shorthand&amp;quot;: false,
+    &amp;quot;object-literal-sort-keys&amp;quot;: [
+      false
+    ],
+    &amp;quot;ter-indent&amp;quot;: [
+      true,
+      2
+    ],
+    &amp;quot;no-console&amp;quot;: false,
+    &amp;quot;only-arrow-functions&amp;quot;: [
+      false
+    ],
+    &amp;quot;member-access&amp;quot;: false,
+    &amp;quot;max-classes-per-file&amp;quot;: [
+      true,
+      5
+    ],
+    &amp;quot;no-shadowed-variable&amp;quot;: false,
+    &amp;quot;interface-name&amp;quot;: [
+      false
+    ],
+    &amp;quot;max-line-length&amp;quot;: [
+      true,
+      200
+    ],
+    &amp;quot;no-var-requires&amp;quot;: false
+  },
+  &amp;quot;rulesDirectory&amp;quot;: []
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Inside &lt;code&gt;scripts&lt;/code&gt; in &lt;code&gt;package.json&lt;/code&gt; copy the following code.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;&amp;quot;dev&amp;quot;: &amp;quot;nodemon --no-deprecation --watch &#39;src/**/*.ts&#39; --ignore &#39;src/**/*.spec.ts&#39; --exec &#39;ts-node&#39; src/app.ts&amp;quot;,
+&amp;quot;lint&amp;quot;: &amp;quot;tslint -c tslint.json &#39;src/**/*.ts&#39; --fix&amp;quot;,
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We will use &lt;code&gt;npm run dev&lt;/code&gt; for running our code in development mode and &lt;code&gt;npm run lint&lt;/code&gt; to lint our code. Now our actual coding will begin. Create a file inside src folder named as app.ts
+Copy this inside &lt;code&gt;src/app.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;function testFunction(): string {
+ return &amp;quot;Messi and Ronaldo are legends&amp;quot;;
+}
+
+export default testFunction;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now we will test this. Create a &lt;code&gt;test&lt;/code&gt; folder inside &lt;code&gt;src&lt;/code&gt;, and then create a file &lt;code&gt;user-test-spec.ts&lt;/code&gt;. For testing we will install required modules. We will be using &lt;code&gt;mocha&lt;/code&gt; for testing and &lt;code&gt;chai&lt;/code&gt; for assertion. Run this command inside your project.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;npm i --quiet chai chai-http chai-as-promised mocha mocha-typescript sinon --save-dev&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;non npm users copy this inside &lt;code&gt;devDependencies&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;&amp;quot;chai&amp;quot;: &amp;quot;^4.2.0&amp;quot;,
+&amp;quot;chai-as-promised&amp;quot;: &amp;quot;^7.1.1&amp;quot;,
+&amp;quot;chai-http&amp;quot;: &amp;quot;3.0.0&amp;quot;,
+&amp;quot;mocha&amp;quot;: &amp;quot;^5.2.0&amp;quot;,
+&amp;quot;mocha-typescript&amp;quot;: &amp;quot;^1.1.17&amp;quot;,
+&amp;quot;sinon&amp;quot;: &amp;quot;^7.2.2&amp;quot;,
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We will create a script for testing. Copy this code inside &lt;code&gt;scripts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;&amp;quot;test&amp;quot;: &amp;quot;mocha --no-deprecation --timeout 10000 --require ts-node/register **/*.spec.ts&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We can use this command using &lt;code&gt;npm test&lt;/code&gt; . So far our &lt;code&gt;package.json&lt;/code&gt; will look like this.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;name&amp;quot;: &amp;quot;graphql-todo&amp;quot;,
+  &amp;quot;version&amp;quot;: &amp;quot;1.0.0&amp;quot;,
+  &amp;quot;description&amp;quot;: &amp;quot;This is a GraphQL API for todo application&amp;quot;,
+  &amp;quot;main&amp;quot;: &amp;quot;index.js&amp;quot;,
+  &amp;quot;scripts&amp;quot;: {
+    &amp;quot;dev&amp;quot;: &amp;quot;nodemon --no-deprecation --watch &#39;src/**/*.ts&#39; --ignore         &#39;src/**/*.spec.ts&#39; --exec &#39;ts-node&#39; src/app.ts&amp;quot;,
+    &amp;quot;lint&amp;quot;: &amp;quot;tslint -c tslint.json &#39;src/**/*.ts&#39; --fix&amp;quot;,
+    &amp;quot;start&amp;quot;: &amp;quot;gulp &amp;amp;&amp;amp; cd dist/ &amp;amp;&amp;amp; node --inspect=8990 --no-deprecation app.js&amp;quot;,
+    &amp;quot;test&amp;quot;: &amp;quot;mocha --no-deprecation --timeout 10000 --require ts-    node/register **/*.spec.ts&amp;quot;
+  },
+ &amp;quot;keywords&amp;quot;: [],
+ &amp;quot;author&amp;quot;: &amp;quot;&amp;quot;,
+ &amp;quot;license&amp;quot;: &amp;quot;ISC&amp;quot;,
+ &amp;quot;devDependencies&amp;quot;: {
+   &amp;quot;chai&amp;quot;: &amp;quot;^4.2.0&amp;quot;,
+   &amp;quot;chai-as-promised&amp;quot;: &amp;quot;^7.1.1&amp;quot;,
+   &amp;quot;chai-http&amp;quot;: &amp;quot;3.0.0&amp;quot;,
+   &amp;quot;gulp&amp;quot;: &amp;quot;^4.0.0&amp;quot;,
+   &amp;quot;gulp-sourcemaps&amp;quot;: &amp;quot;^2.6.4&amp;quot;,
+   &amp;quot;gulp-typescript&amp;quot;: &amp;quot;^5.0.0&amp;quot;,
+   &amp;quot;mocha&amp;quot;: &amp;quot;^5.2.0&amp;quot;,
+   &amp;quot;mocha-typescript&amp;quot;: &amp;quot;^1.1.17&amp;quot;,
+   &amp;quot;nodemon&amp;quot;: &amp;quot;^1.18.9&amp;quot;,
+   &amp;quot;sinon&amp;quot;: &amp;quot;^7.2.2&amp;quot;,
+   &amp;quot;ts-node&amp;quot;: &amp;quot;^7.0.1&amp;quot;,
+   &amp;quot;tslint&amp;quot;: &amp;quot;^5.12.0&amp;quot;,
+   &amp;quot;tslint-eslint-rules&amp;quot;: &amp;quot;^5.4.0&amp;quot;,
+   &amp;quot;typescript&amp;quot;: &amp;quot;^3.2.2&amp;quot;
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Inside your &lt;code&gt;src/test/user-test.spec.ts&lt;/code&gt; copy this code&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import chai = require(&amp;quot;chai&amp;quot;);
+import chaiAsPromised = require(&amp;quot;chai-as-promised&amp;quot;);
+import { suite, test } from &amp;quot;mocha-typescript&amp;quot;;
+import testFunction from &amp;quot;../app&amp;quot;;
+chai.use(chaiAsPromised);
+
+@suite(&amp;quot;User Test class&amp;quot;)
+class UserTests {
+
+  @test(&amp;quot;testFunction Test - It works fine&amp;quot;)
+  public testFunction(done) {
+    chai.expect(testFunction()).to.deep.equal(&amp;quot;Messi and Ronaldo are legends&amp;quot;);
+    done();
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 1–4:-&lt;/em&gt; We are importing test modules and our file app.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 7–8:-&lt;/em&gt; We are defining suite to run and defining our class UserTests.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 10–16:-&lt;/em&gt; &lt;code&gt;@test&lt;/code&gt; will declare the test message we are running, we also define a public test to run. We use chai.expect to test assetion of test.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Run your test by running &lt;code&gt;npm test&lt;/code&gt; . If everything works fine, it will look like this.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*-w1b3_eXk-ELNXyq6KgBAw.png&#34; alt=&#34;Tests for checking our code.&#34;&gt;&lt;/p&gt;
+&lt;p&gt;To calculate test coverage of our code we will use &lt;a href=&#34;https://github.com/istanbuljs/nyc&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;nyc&lt;/a&gt;. We need to first check that our project is building or not. Copy this to &lt;code&gt;scripts&lt;/code&gt; and then run &lt;code&gt;npm run build&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;&amp;quot;build&amp;quot;: &amp;quot;gulp&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You will get output as show below and a &lt;code&gt;dist&lt;/code&gt; folder will be created.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2404/1*qqoZn-tVZwQB4nZ5xHDJdA.png&#34; alt=&#34;gulp building your project&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Add &lt;code&gt;nyc&lt;/code&gt; module by running &lt;code&gt;npm i --quiet nyc --save-dev&lt;/code&gt; , non npm users copy this into package.json&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;&amp;quot;nyc&amp;quot;: &amp;quot;^13.1.0&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Add the command given below to &lt;code&gt;scripts&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;&amp;quot;coverage&amp;quot;: &amp;quot;nyc --reporter=text mocha --no-deprecation --timeout 10000 dist/test/*.spec.js -x dist/test/*.spec.js&amp;quot;,
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We need to build to latest code first, then after that we will run code coverage by running npm run build &amp;amp;&amp;amp; npm run coverage. This will create a .nyc_output folder, from which our code coverage will be seen. You will see following output.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*83bxvbaEg8q8Sgk6RHNCWw.png&#34; alt=&#34;code coverage 💯&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Above image shows that we have achieved 💯 code coverage which depicts that we have not written any unusable code.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;docker-setup&#34;&gt;&lt;strong&gt;Docker Setup&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;Now we will setup &lt;code&gt;docker&lt;/code&gt; so that non npm users can also run tests and build project without installing node or npm. I assume that the readers have a basic understanding of docker. If you have never used docker before you might wanna check out this guide for getting started with &lt;a href=&#34;https://rominirani.com/docker-tutorial-series-a7e6ff90a023&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Docker&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Create a &lt;strong&gt;Dockerfile&lt;/strong&gt; inside root directory and copy this&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-dockerfile&#34;&gt;FROM node:8
+
+# Install gulp and pm2 globaly
+RUN npm install --quiet -g gulp pm2
+
+# Create app directory
+RUN mkdir -p /usr/src/
+
+WORKDIR /usr/src/
+
+# Install app dependencies
+COPY package.json /usr/src/
+
+RUN npm install --quiet
+
+# Bundle app source
+COPY . /usr/src
+
+# Build the project
+RUN npm run build
+
+WORKDIR /usr/src/dist
+
+EXPOSE 4895
+EXPOSE 5858
+CMD [&amp;quot;pm2-docker&amp;quot;, &amp;quot;process.yml&amp;quot;]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 1:-&lt;/em&gt; We are use Node image having version 8.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 4:-&lt;/em&gt; We globally install gulp and &lt;a href=&#34;https://github.com/Unitech/pm2&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;pm2&lt;/a&gt;. &lt;em&gt;PM2&lt;/em&gt; is a Production Runtime and Process Manager for Node.js applications with a built-in Load Balancer.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 7:-&lt;/em&gt; We create a new directory &lt;code&gt;/usr/src/&lt;/code&gt; inside our docker image.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 9:-&lt;/em&gt; We set &lt;code&gt;/usr/src/&lt;/code&gt; as our working directory inside the docker image.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 12:-&lt;/em&gt; We copy &lt;code&gt;package.json&lt;/code&gt; from root directory to our working directory.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 14:-&lt;/em&gt; We install node modules inside docker image.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 17:-&lt;/em&gt; We copy rest of our code from root directory to our working directory.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 20:-&lt;/em&gt; We build our project using gulp. We already installed gulp inside our docker image in line 4.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 22:-&lt;/em&gt; We set our working directory as &lt;code&gt;/usr/src/dist/&lt;/code&gt; as our JS code is compiled there.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 26:-&lt;/em&gt; We execute &lt;code&gt;pm2&lt;/code&gt; and using our &lt;code&gt;process.yml&lt;/code&gt; file that we created earlier to start the application inside docker image.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We need to build docker image using this &lt;strong&gt;Dockerfile.&lt;/strong&gt; Add a scripts folder inside root directory and create a &lt;code&gt;dockerCompose.sh&lt;/code&gt; file inside it. Copy the following code inside &lt;code&gt;scripts/dockerCompose.sh&lt;/code&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/usr/bin/env bash
+
+cd ..
+
+docker build -t knrt10/todoapi -f Dockerfile .
+
+docker-compose up -d
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Add this inside scripts in your package.json.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;&amp;quot;dockerStart&amp;quot;: &amp;quot;cd scripts &amp;amp;&amp;amp; chmod 777 dockerCompose.sh &amp;amp;&amp;amp; ./dockerCompose.sh &amp;amp;&amp;amp; cd ..&amp;quot;,
+&amp;quot;dockerStop&amp;quot;: &amp;quot;docker-compose down&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now that you know how to create an image with a Dockerfile, let’s create an application as a service and connect it to a database. Then we can run some setup commands and be on our way to creating rest of application.&lt;/p&gt;
+&lt;p&gt;The &lt;a href=&#34;https://docs.docker.com/compose/compose-file/compose-file-v2/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Docker Compose file&lt;/a&gt; will define and run the containers based on a configuration file. We are using &lt;a href=&#34;https://docs.docker.com/compose/compose-file/compose-file-v2/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;compose file version 2&lt;/a&gt; syntax, and you can read about it on Docker’s site.&lt;/p&gt;
+&lt;p&gt;An important concept to understand is that Docker Compose spans &lt;strong&gt;buildtime&lt;/strong&gt; and &lt;strong&gt;runtime&lt;/strong&gt;. Up until now, we have been building images using docker build ., which is &lt;strong&gt;buildtime&lt;/strong&gt;. This is when our containers are actually built. We can think of &lt;strong&gt;runtime&lt;/strong&gt; as what happens once our containers are built and being used.&lt;/p&gt;
+&lt;p&gt;Compose triggers &lt;strong&gt;buildtime&lt;/strong&gt;— instructing our images and containers to build — but it also populates data used at &lt;strong&gt;runtime&lt;/strong&gt;, such as env vars and volumes. This is important to be clear on. For instance, when we add things like volumes and command, they will override the same things that may have been set up via the Dockerfile at &lt;strong&gt;buildtime&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;Open your &lt;code&gt;docker-compose.yml&lt;/code&gt; file in your editor in root directory and copy/paste the following lines:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-yaml&#34;&gt;version: &#39;3&#39;
+services:
+  web:
+    build: .
+    command: npm run dev
+    volumes:
+      - .:/usr/src/
+      - /usr/src/node_modules
+    ports:
+      - &amp;quot;3000:3000&amp;quot;
+    depends_on:
+       - mongodb
+
+  mongodb:
+     image: mongo
+     ports:
+       - &amp;quot;27017:27017&amp;quot;
+     volumes:
+       - ./data:/data/db
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The first directive in the web service is to build the image based on our Dockerfile. This will recreate the image we used before, but it will now be named according to the project we are in, &lt;strong&gt;graphql-todo&lt;/strong&gt;. After that, we are giving the service some specific instructions on how it should operate:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 5:-&lt;/em&gt; Once the image is built, and the container is running, the npm start command will start the application.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 6:-&lt;/em&gt; &lt;code&gt;volumes:&lt;/code&gt; – This section will mount paths between the host and the container.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 7:-&lt;/em&gt; &lt;code&gt;.:/usr/src/&lt;/code&gt; – This will mount the root directory to our working directory in the container.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 8:-&lt;/em&gt; &lt;code&gt;/usr/src/node_modules&lt;/code&gt; – This will mount the node_modules directory to the host machine using the buildtime directory.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 9:-&lt;/em&gt; &lt;code&gt;ports:&lt;/code&gt; – This will publish the container’s port, in this case 3000, to the host as port 3000&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 11:-&lt;/em&gt; This depicts on what database image it depends on. We are using mongodb so we will specify mongodb&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 14:-&lt;/em&gt; It will build mongodb image.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 15:-&lt;/em&gt; Same as nodejs we specify version of mongodb image here.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 17:-&lt;/em&gt; &lt;code&gt;ports:&lt;/code&gt; – This will publish the container’s port, in this case &lt;code&gt;27017&lt;/code&gt;, to the host as port &lt;code&gt;27017&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Now before executing this script, check your docker is up and running. This command will execute our &lt;code&gt;scripts/dockerCompose.sh&lt;/code&gt; file. This file builds our docker image. Now run &lt;code&gt;npm run dockerStart&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;If everything goes right you will see this output. This means your docker image is created.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;Successfully built 2597b7c50ed4
+Successfully tagged graphql-todo_web:latest
+Creating graphql-todo_mongodb_1 ... done
+Creating graphql-todo_web_1     ... done
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You can get information about your running containers using the command given below.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;docker ps -a&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;You will see this kind of output&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2400/1*WLolSR6wA9F8EYS2mI9VQQ.png&#34; alt=&#34;Running docker containers.&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Copy the &lt;strong&gt;NAMES&lt;/strong&gt; for image &lt;code&gt;graphql-todo_web&lt;/code&gt; and run this&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;docker exec -it graphql-todo_web_1 -- /bin/bash&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;This will run bash inside the existing &lt;code&gt;graphql-todo_web_1&lt;/code&gt; container. The &lt;strong&gt;bash&lt;/strong&gt; process will have the same Linux namespaces as the main container process. This allows you to explore the container from within and see how Node.js and your app see the system when running inside the container. The &lt;strong&gt;-it&lt;/strong&gt; option is shorthand for two options:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;-i, which makes sure STDIN is kept open. You need this for entering commands into the shell.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;-t, which allocates a pseudo terminal (TTY).&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;exploring-container-from-within&#34;&gt;Exploring container from within&lt;/h3&gt;
+&lt;p&gt;Now you can run same commands as other users who have node installed. Find your test coverage by running the command given below.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;npm run coverage&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;You will see the following output.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2418/1*c5J2VJhbx5azzRIXzCEI_w.png&#34; alt=&#34;running tests inside container&#34;&gt;&lt;/p&gt;
+&lt;p&gt;You can stop docker process by running &lt;code&gt;npm run dockerStop&lt;/code&gt; after exiting from container.&lt;/p&gt;
+&lt;h2 id=&#34;setting-up-express-server&#34;&gt;Setting up Express server&lt;/h2&gt;
+&lt;p&gt;We will now setup our express server. Copy this code to your &lt;code&gt;package.json&lt;/code&gt; and run &lt;code&gt;npm i --quiet&lt;/code&gt;. Non npm users just copy.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;    &amp;quot;dependencies&amp;quot;: {
+      &amp;quot;@types/node&amp;quot;: &amp;quot;^10.12.15&amp;quot;,
+      &amp;quot;bcrypt-nodejs&amp;quot;: &amp;quot;0.0.3&amp;quot;,
+      &amp;quot;bluebird&amp;quot;: &amp;quot;^3.5.3&amp;quot;, 
+      &amp;quot;cors&amp;quot;: &amp;quot;^2.8.5&amp;quot;,
+      &amp;quot;express&amp;quot;: &amp;quot;^4.16.4&amp;quot;,
+      &amp;quot;helmet&amp;quot;: &amp;quot;^3.15.0&amp;quot;,
+      &amp;quot;jsonwebtoken&amp;quot;: &amp;quot;^8.4.0&amp;quot;,
+      &amp;quot;mongoose&amp;quot;: &amp;quot;^5.4.0&amp;quot;,
+      &amp;quot;winston&amp;quot;: &amp;quot;2.4.0&amp;quot;
+    }
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;bcrypt-nodejs&lt;/em&gt;:- Its for hashing user password using gensalt and securely storing into database&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;bluebird&lt;/em&gt;:- For handling promises.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;cors:-&lt;/em&gt; For handling Cross origin resource sharing and enabling it across all headers and domains.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;express:-&lt;/em&gt; For setting up server.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;helmet:-&lt;/em&gt; For securing our Express apps by setting various HTTP headers.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;jsonwebtoken:-&lt;/em&gt; For creating token that will authenticate the user.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;mongoose:-&lt;/em&gt; An &lt;em&gt;ORM(Object-Relational Mapping)&lt;/em&gt; to interact with mongoDB.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;winston:-&lt;/em&gt; A cool logger instead of console.log.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Now create a &lt;code&gt;server.ts&lt;/code&gt; inside src folder and copy this&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;&amp;quot;use strict&amp;quot;;
+/*
+  Import modules
+*/
+import bluebird = require(&amp;quot;bluebird&amp;quot;);
+import cors = require(&amp;quot;cors&amp;quot;);
+import express = require(&amp;quot;express&amp;quot;);
+import fs = require(&amp;quot;fs&amp;quot;);
+import mongoose = require(&amp;quot;mongoose&amp;quot;);
+import { Config } from &amp;quot;./shared&amp;quot;;
+global.Promise = bluebird;
+
+/**
+ * @exports TodoApp
+ * @class
+ * @method startServer
+ * @method initEnv
+ * @method initWinston
+ * @method initExpress
+ * @method initCORS
+ * @method initAppRoutes
+ * @method initServices
+ */
+export class TodoApp {
+  public infoString: string;
+  public port: any;
+  private pkg = require(&amp;quot;../package.json&amp;quot;); // information about package version
+  private winston: any = require(&amp;quot;winston&amp;quot;); // for logging
+  private app: any; // express server
+  constructor(private portGiven) {
+    if (Config.dbSettings.authEnabled) {
+      this.infoString = &amp;quot;mongodb://&amp;quot; + Config.dbSettings.username + &amp;quot;:&amp;quot; + Config.dbSettings.password + &amp;quot;@&amp;quot;
+        + Config.dbSettings.connectionString + &amp;quot;/&amp;quot; + Config.dbSettings.database;
+    } else if (Config.dbSettings.localDatabase) {
+      this.infoString = &amp;quot;mongodb://&amp;quot; + Config.dbSettings.connectionString + &amp;quot;/&amp;quot; + Config.dbSettings.database;
+    } else {
+      this.infoString = &amp;quot;mongodb://&amp;quot; + Config.dbSettings.dockerconnectionString + &amp;quot;/&amp;quot; + Config.dbSettings.database;
+    }
+    this.port = portGiven;
+  }
+
+  /**
+   * This starts express server
+   * @method startServer @public
+   */
+  public startServer() {
+    this.initEnv().then(() =&amp;gt; {
+      // logs/ Folder already
+      // Initilatizing the winston as per documentation
+      this.initWinston();
+
+      this.initServices().then(() =&amp;gt; {
+
+        // start the express server(s)
+        this.initExpress();
+
+        // all done
+        this.winston.info(this.pkg.name + &amp;quot; startup sequence completed&amp;quot;, {
+          version: this.pkg.version,
+        });
+      });
+    });
+  }
+
+  /**
+   * This setups the log folder and any other environment needs
+   * @method initEnv @private
+   * @returns {Promise&amp;lt;void&amp;gt;}
+   */
+  private initEnv(): Promise&amp;lt;void&amp;gt; {
+    return new Promise&amp;lt;void&amp;gt;((resolve) =&amp;gt; {
+      const logPath: string = Config.serviceSettings.logsDir;
+      fs.stat(logPath, (err) =&amp;gt; {
+        resolve();
+      });
+    });
+  }
+
+  /**
+   * This Initilatizes the winston
+   * @method initWinston @private
+   */
+  private initWinston() {
+    // winston is configured as a private variable to the main app.ts
+    // it can then be spread to child modules or routeModules. This way only one winston object needs to be setup
+    this.winston.remove(this.winston.transports.Console);
+    this.winston.add(this.winston.transports.Console, {
+      colorize: true,
+      prettyPrint: true,
+      timestamp: true,
+    });
+
+    this.winston.add(this.winston.transports.File, {
+      name: &amp;quot;error&amp;quot;,
+      level: &amp;quot;error&amp;quot;,
+      filename: &amp;quot;logs/error.log&amp;quot;,
+      maxsize: 10485760,
+      maxFiles: &amp;quot;10&amp;quot;,
+      timestamp: true,
+    });
+    this.winston.add(this.winston.transports.File, {
+      name: &amp;quot;warn&amp;quot;,
+      level: &amp;quot;warn&amp;quot;,
+      filename: &amp;quot;logs/warn.log&amp;quot;,
+      maxsize: 10485760,
+      maxFiles: &amp;quot;10&amp;quot;,
+      timestamp: true,
+    });
+    this.winston.add(this.winston.transports.File, {
+      name: &amp;quot;info&amp;quot;,
+      level: &amp;quot;info&amp;quot;,
+      filename: &amp;quot;logs/info.log&amp;quot;,
+      maxsize: 10485760,
+      maxFiles: &amp;quot;10&amp;quot;,
+      timestamp: true,
+    });
+    this.winston.add(this.winston.transports.File, {
+      name: &amp;quot;verbose&amp;quot;,
+      level: &amp;quot;verbose&amp;quot;,
+      filename: &amp;quot;logs/verbose.log&amp;quot;,
+      maxsize: 10485760,
+      maxFiles: &amp;quot;10&amp;quot;,
+      timestamp: true,
+    });
+
+    this.winston.info(&amp;quot;Winston has been init&amp;quot;);
+  }
+
+  /**
+   * This Initilatizes express server
+   * @method initExpress @private
+   */
+  private initExpress() {
+    // create express
+    this.app = express();
+    this.initCORS();
+
+    // add in any routes you might want
+    this.initAppRoutes();
+
+    // and start!
+    this.app.listen(this.port);
+    this.winston.info(&amp;quot;Express started on (http://localhost:&amp;quot; + this.port + &amp;quot;/)&amp;quot;);
+  }
+
+  /**
+   * This Initilatizes cors package
+   * @method initCORS @private
+   */
+  private initCORS() {
+    this.app.use(cors());
+  }
+
+  /**
+   * This Initilatizes routes for server
+   * @method initAppRoutes @private
+   */
+  private initAppRoutes() {
+    // We will setup our graphql route here
+  }
+
+  /**
+   * This Initilatizes services we want if expanding the application
+   * @method initServices @private
+   * @returns {Promise&amp;lt;boolean&amp;gt;}
+   */
+  private initServices(): Promise&amp;lt;boolean&amp;gt; {
+    return new Promise&amp;lt;boolean&amp;gt;((resolve, reject) =&amp;gt; {
+      // connect to mongodb
+      mongoose.connect(this.infoString, { useNewUrlParser: true }).then(() =&amp;gt; {
+        this.winston.info(&amp;quot;Mongo Connected!&amp;quot;);
+        resolve(true);
+      });
+    });
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 1–10:-&lt;/em&gt; We import necessary modules.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 11:-&lt;/em&gt; We specify that our promises globally will be handled by &lt;code&gt;bluebird&lt;/code&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 24-30:-&lt;/em&gt; We create a class TodoApp and initialize it’s constructor with a public data member &lt;em&gt;infostring&lt;/em&gt; and set it to according to what type of mongoDB we are using. If running locally &lt;code&gt;authEnabled&lt;/code&gt; is set to &lt;code&gt;false&lt;/code&gt; in &lt;code&gt;config.ts&lt;/code&gt; file. If running docker localDatabase inside &lt;code&gt;config.ts&lt;/code&gt; is set to &lt;code&gt;false&lt;/code&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 46 :-&lt;/em&gt; We create a public member function to start the express server.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 70–77:-&lt;/em&gt; Here we check whether we have a logs folder or not. We are returning a promise here that we handle in &lt;em&gt;line 47.&lt;/em&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 83–127:-&lt;/em&gt; We are using winston as our logger. So here we setup winston that’s all.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 133–144:-&lt;/em&gt; We create a member function to initialize our express application.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 150–152:-&lt;/em&gt; We are intializing cors module in this member function.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 158–160:-&lt;/em&gt; In this member function we will initialize our graphQL routes in our next article.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 167–175:-&lt;/em&gt; In this member function we are returing a promise that resolves to that a mongoDB is connected. We handle this promise on &lt;em&gt;line 52.&lt;/em&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Now create a shared folder inside &lt;code&gt;src/&lt;/code&gt; and create 2 files&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;config.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;index.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Copy this to &lt;code&gt;src/shared/config.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;/**
+ * This file stores info for api, db, keys, logs
+ * @constant Config
+ */
+export const Config = {
+  apiSettings: {
+    host: process.env.API_HOST || &amp;quot;localhost&amp;quot;,
+  },
+  dbSettings: {
+    authEnabled: process.env.MONGO_AUTH || false,
+    localDatabase: true,
+    dockerconnectionString: process.env.MONGO_DB_HOST_DOCKER || &amp;quot;mongodb:27017&amp;quot;,
+    connectionString: process.env.MONGO_DB_HOST || &amp;quot;localhost:27017&amp;quot;,
+    database: process.env.DATABASE || &amp;quot;todoapp&amp;quot;,
+    password: process.env.MONGO_AUTH_PASSWORD,
+    username: process.env.MONGO_AUTH_USERNAME,
+  },
+  serviceSettings: {
+    logsDir: &amp;quot;logs/&amp;quot;,
+    env: process.env.environment || &amp;quot;local&amp;quot;,
+  },
+  secretKeys: {
+    jwtSecret: process.env.SECRET || &amp;quot;yes1234$ASDASD/SA&amp;quot;,
+    cryptoSecret: process.env.CRYPTO || &amp;quot;DASD2233312S;!`W21&amp;quot;,
+  },
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And this inside &lt;code&gt;src/shared/index.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;export * from &amp;quot;./config&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now copy this to your &lt;code&gt;src/app.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;&amp;quot;use strict&amp;quot;;
+
+import { TodoApp } from &amp;quot;./server&amp;quot;;
+
+const server: TodoApp = new TodoApp(process.env.API_PORT || 3000);
+
+// starting the server*
+
+server.startServer();
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Also create a logs folder inside project root directory and create a &lt;code&gt;temp.txt&lt;/code&gt; file inside it. Copy the following code inside &lt;code&gt;logs/temp.txt&lt;/code&gt; :&lt;/p&gt;
+&lt;p&gt;This is just an example of log file&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{&amp;quot;level&amp;quot;:&amp;quot;info&amp;quot;,&amp;quot;message&amp;quot;:&amp;quot;Winston has been init&amp;quot;,&amp;quot;timestamp&amp;quot;:&amp;quot;2018-12-26T16:59:05.380Z&amp;quot;}
+{&amp;quot;level&amp;quot;:&amp;quot;info&amp;quot;,&amp;quot;message&amp;quot;:&amp;quot;Mongo Connected!&amp;quot;,&amp;quot;timestamp&amp;quot;:&amp;quot;2018-12-26T16:59:05.420Z&amp;quot;}
+{&amp;quot;level&amp;quot;:&amp;quot;info&amp;quot;,&amp;quot;message&amp;quot;:&amp;quot;Express started on ([http://localhost:3000/](http://localhost:3000/))&amp;quot;,&amp;quot;timestamp&amp;quot;:&amp;quot;2018-12-26T16:59:05.430Z&amp;quot;}
+{&amp;quot;version&amp;quot;:&amp;quot;1.0.0&amp;quot;,&amp;quot;level&amp;quot;:&amp;quot;info&amp;quot;,&amp;quot;message&amp;quot;:&amp;quot;graphql-todo startup sequence completed&amp;quot;,&amp;quot;timestamp&amp;quot;:&amp;quot;2018-12-26T16:59:05.432Z&amp;quot;}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To update our tests. Copy this to &lt;code&gt;src/test/user-test.spec.ts&lt;/code&gt; :&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import chai = require(&amp;quot;chai&amp;quot;);
+import chaiAsPromised = require(&amp;quot;chai-as-promised&amp;quot;);
+import chaiHttp = require(&amp;quot;chai-http&amp;quot;);
+import { suite, test } from &amp;quot;mocha-typescript&amp;quot;;
+import sinon = require(&amp;quot;sinon&amp;quot;);
+import { TodoApp } from &amp;quot;../server&amp;quot;;
+import { Config } from &amp;quot;../shared&amp;quot;;
+
+// starting the server
+const server: TodoApp = new TodoApp(process.env.API_PORT || 3001);
+server.startServer();
+
+chai.use(chaiAsPromised);
+chai.use(chaiHttp);
+
+@suite(&amp;quot;User Test class&amp;quot;)
+class UserTests {
+
+  static after() {
+    process.exit(0);
+  }
+
+  @test(&amp;quot;Testing Local Connection - try connection for Local mongodb&amp;quot;)
+  public localDb(done) {
+    setTimeout(() =&amp;gt; {
+      Config.dbSettings.localDatabase = true;
+      const mock = sinon.mock(new TodoApp(process.env.API_PORT || 3001), &amp;quot;constructor&amp;quot;);
+      chai.expect(mock.object.infoString).to.deep.equal(&amp;quot;mongodb://&amp;quot; + Config.dbSettings.connectionString + &amp;quot;/&amp;quot; + Config.dbSettings.database);
+      done();
+    }, 100);
+  }
+
+  @test(&amp;quot;Testing Docker Connection - try connection for docker mongodb&amp;quot;)
+  public dockerDb(done) {
+    Config.dbSettings.localDatabase = false;
+    const mock = sinon.mock(new TodoApp(process.env.API_PORT || 3001), &amp;quot;constructor&amp;quot;);
+    chai.expect(mock.object.infoString).to.deep.equal(&amp;quot;mongodb://&amp;quot; + Config.dbSettings.dockerconnectionString + &amp;quot;/&amp;quot; + Config.dbSettings.database);
+    done();
+  }
+
+  @test(&amp;quot;Testing Online Connection - try connection for online mongodb&amp;quot;)
+  public OnlineDb(done) {
+    Config.dbSettings.authEnabled = true;
+    const mock = sinon.mock(new TodoApp(process.env.API_PORT || 3001), &amp;quot;constructor&amp;quot;);
+    chai.expect(mock.object.infoString).to.deep.equal(&amp;quot;mongodb://&amp;quot; + Config.dbSettings.username + &amp;quot;:&amp;quot; + Config.dbSettings.password + &amp;quot;@&amp;quot;
+        + Config.dbSettings.connectionString + &amp;quot;/&amp;quot; + Config.dbSettings.database);
+    done();
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;First start your mongoDB for your OS and then run &lt;code&gt;npm run build &amp;amp;&amp;amp; npm run coverage&lt;/code&gt;. You will see the output given below.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2444/1*dV1hBVwfY3MG_68-ReY3kQ.png&#34; alt=&#34;second set of tests with maintained 💯 code coverage. 👌&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;second set of tests with maintained 💯 code coverage. 👌&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;commiting-our-changes&#34;&gt;Commiting our changes&lt;/h2&gt;
+&lt;p&gt;We need to commit our changes, so that if some problem occur we can roll back to this commit. First create a &lt;code&gt;.gitignore&lt;/code&gt; file in your root directory and copy this&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-github&#34;&gt;*# Dependency directories*
+
+node_modules
+jspm_packages
+
+*# Optional npm cache directory
+*.npm
+
+*# Optional REPL history
+*.node_repl_history
+/bin/
+/tmp/
+/dist/
+/typings/
+/data/
+/logs/*.log
+/.nyc_output/
+/coverage/
+.DS_Store
+package-lock.json
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now copy and run the commands given below inside your git repository. Make sure you are in root folder.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;git add .
+git commit -m &amp;quot;Adding part1 changes&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;So far your project should look like this&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*uoZAi6RoGSq3rvsIN6X96A.png&#34; alt=&#34;project progress&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;That is for this part. In this part you learnt following things:-&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;How to create express server.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How to setup docker using dockerfile and docker-compose.yml.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How to use Gulp and compile code from TS to JS.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How to write clean code.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How and write tests and have 💯 code coverage 😃.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;In next part you will start working with &lt;strong&gt;graphQL&lt;/strong&gt; and make API using that.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;did-you-find-this-page-helpful-consider-sharing-it-&#34;&gt;Did you find this page helpful? Consider sharing it 🙌&lt;/h3&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>ShellRacer</title>
+      <link>/post/typeracer/</link>
+      <pubDate>Mon, 14 May 2018 00:00:00 +0000</pubDate>
+      <guid>/post/typeracer/</guid>
+      <description>&lt;h2 id=&#34;a-little-background&#34;&gt;A little background&lt;/h2&gt;
+&lt;p&gt;For months my eyes were set on one goal : the prestigious and famous Google Summer of Code. I had been contributing to my organization like crazy, creating PRs after PRs, raising issues and helping out fellow contributors and other aspiring GSoCers on the community&amp;rsquo;s slack team.&lt;/p&gt;
+&lt;p&gt;The day of the results came and out of the two slots given to my organization my project wasn&amp;rsquo;t in the list of selected projects. It was hard at first, I thought I had done everything right but still my name wasn&amp;rsquo;t up there.&lt;/p&gt;
+&lt;p&gt;The next morning I decided not to waste my time anymore and started to look at the bright side of things, contributing to open source project helped me learn invaluable skills like &lt;em&gt;test driven development, CI/CD, git (rebasing, merge conflicts), etc&lt;/em&gt;. I may not be getting any stipend for writing code throughout the summer but I earned some invaluable skills which I can use in my future projects.&lt;/p&gt;
+&lt;p&gt;So it was exam time and I was hacking on one of my project’s as usual (a CLI tool to upload images to a cloud service) when one of my cool friends (&lt;a href=&#34;https://github.com/palash25&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Palash Nigam&lt;/a&gt;) entered my room and said with a tone of surprise &lt;em&gt;“You don’t know how to touch type? That’s pathetic”&lt;/em&gt; 😀. So he introduced me to this site called typeracer (so I listened to him and started practicing on that site and I was hooked). One of my seniors from college (&lt;a href=&#34;https://github.com/shibasisp&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Shibasis Patel&lt;/a&gt;) gave me this idea of creating a CLI tool to play typeracer (as I had earlier asked him for some project ideas) which we could use to introduce the freshmen to both the shell and touch typing. This gave me a new purpose, so I started coding. After about a week of writing code I am proud to present to you &lt;strong&gt;&lt;a href=&#34;https://github.com/p-society/typeracer-cli&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;typeracer-CLI&lt;/a&gt;&lt;/strong&gt;&lt;/p&gt;
+&lt;h2 id=&#34;what-is-typeracer-cli&#34;&gt;What is typeracer-cli?&lt;/h2&gt;
+&lt;p&gt;So it is basically a terminal client for playing typeracer on your shell. As soon as you start the game you will be presented with a paragraph which you have to type out and at the end your time and speed (in wpm) are recorded and presented as an output.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;What’s new about this? CLI versions of this game already exist.
+Agreed, other versions of this already exists but they don’t offer all the features that this client does, like:&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;Practice mode (offline mode)&lt;/li&gt;
+&lt;li&gt;User stats (words per minute, time taken)&lt;/li&gt;
+&lt;li&gt;Online mode (have a type-race by spawning up a server and sharing it with your friends)&lt;/li&gt;
+&lt;li&gt;Ask for a rematch after the race ends (online mode)&lt;/li&gt;
+&lt;li&gt;View the top 10 High scores in online mode&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;the-motivation-behind-it&#34;&gt;The motivation behind it&lt;/h2&gt;
+&lt;p&gt;Well, they say failure is a great motivator. I learned this the hard way. Failing in getting selected for GSoC motivated me even more to be a better developer. The other big reason was the desire to do something for my college. I had realized the benefits of working in a developer community during the time I was preparing for GSoC. Although I was a part of my college’s Programming Society I hadn’t contributed as actively as I should have. This project turned out to be one of the ways of contributing to my community by spreading awareness about touch typing and CLI tools among young aspiring developers who are just starting out.&lt;/p&gt;
+&lt;h2 id=&#34;implementation&#34;&gt;Implementation&lt;/h2&gt;
+&lt;p&gt;Initially the task was to get keystrokes from the user’s terminal which at that time I thought was impossible. But I found about readline and keyspress events in nodejs which helped me to move further in coding.&lt;/p&gt;
+&lt;p&gt;The tasks were broken up into the following:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Conver this tool to an npm package&lt;/li&gt;
+&lt;li&gt;Offline practice mode&lt;/li&gt;
+&lt;li&gt;Generate random paragraph for every race&lt;/li&gt;
+&lt;li&gt;Add more sensible paragraphs&lt;/li&gt;
+&lt;li&gt;Display the user’s time and speed as they type&lt;/li&gt;
+&lt;li&gt;Setup server for online mode&lt;/li&gt;
+&lt;li&gt;Improve the API Design&lt;/li&gt;
+&lt;li&gt;Write tests&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;getting-into-every-point-in-detail&#34;&gt;Getting into every point in detail&lt;/h2&gt;
+&lt;h3 id=&#34;converting-it-to-an-npm-package&#34;&gt;Converting it to an npm package&lt;/h3&gt;
+&lt;p&gt;This was important task so that one can easily download the package and install it globally from &lt;a href=&#34;http://npmjs.com/package/typeracer-cli&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;npm&lt;/a&gt;. For that we need to use a very important line on the start of the file that is going to execute.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;#!/usr/bin/env node is an instance of a &lt;a href=&#34;https://en.wikipedia.org/wiki/Shebang_%28Unix%29&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;shebang&lt;/a&gt; line: the very first line in an executable plain-text file on Unix-like platforms that tells the system what interpreter to pass that file to for execution, via the command line following the magic #! prefix (called shebang)&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Although &lt;strong&gt;Windows does not support shebang lines&lt;/strong&gt;, so they’re effectively ignored there; on Windows it is solely a given file’s filename extension that determines what executable will interpret it. &lt;strong&gt;However, you still need them in the context of npm&lt;/strong&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;implementing-the-offline-practice-mode&#34;&gt;Implementing the offline (practice) mode&lt;/h3&gt;
+&lt;p&gt;Initially some commands were written for the execution of practice mode. With the help of a package &lt;a href=&#34;https://www.npmjs.com/package/commander&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;commander&lt;/a&gt; I was able to achieve this task.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;program 
+ .command(&#39;practice&#39;)
+ .alias(&#39;p&#39;)  
+ .description(&#39;Starts typeracer in practice mode&#39;) 
+ .action(() =&amp;gt; 
+   {  
+     game() 
+   })  
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&#34;game-function&#34;&gt;game() function&lt;/h3&gt;
+&lt;p&gt;This is main logic that allows the application to get keystrokes from the client, but we also have to listen to keypress event for completion of this task. &lt;code&gt;stdin.on(&#39;keypress&#39;, keypress)&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;const stdin = process.stdin
+const stdout = process.stdout
+stdin.setRawMode(true)
+stdin.resume()
+require(&#39;readline&#39;).emitKeypressEvents(stdin)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now in game() I was enabling &lt;code&gt;keypress&lt;/code&gt; event after 5 seconds of game, and showing paragraphs to user so that they get time to &lt;em&gt;relax their fingers, twist turn their neck, crack their knuckles and say “bring it on”&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;I was displaying three things to client when they were typing&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Real time analysis of their typing with green, red representing correct and wrong characters respectively.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;/**
+* @function color
+* @param {String} quote
+* @param {String} stringTyped
+*/
+
+function color (quote, stringTyped) {
+  let colouredString = &#39;&#39;
+  let wrongInput = false
+
+  const quoteLetters = quote.split(&#39;&#39;)
+  const typedLetters = stringTyped.split(&#39;&#39;)
+  for (let i = 0; i &amp;lt; typedLetters.length; i++) {
+    // if a single mistake,
+    // the rest of the coloured string will appear red
+    if (wrongInput) {
+      colouredString += chalk.bgRed(quoteLetters[i])
+      continue
+    }
+
+    if (typedLetters[i] === quoteLetters[i]) {
+      wrongInput = false
+      colouredString += chalk.green(quoteLetters[i])
+      if (quote === stringTyped) {
+        gameEnd = true
+      }
+    } else {
+      wrongInput = true
+      colouredString += chalk.bgRed(quoteLetters[i])
+    }
+  }
+  return colouredString
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Real time analysis of their speed in words per minute.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The following snippet explains how to get the speed of a user according to correct words typed by them.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;/**
+* @function updateWpm
+*/
+
+function updateWpm () {
+  if (stringTyped.length &amp;gt; 0) {
+    wordsPermin = stringTyped.split(&#39; &#39;).length / (time / 60)
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Calculating the time taken&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;/**
+* @function Time
+*/
+
+function Time () {
+  time = (Date.now() - timeStarted) / 1000
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;In the end there is an option to retry where you can restart the match with generation of new paragraph every time.&lt;/p&gt;
+&lt;h2 id=&#34;online-mode&#34;&gt;Online Mode&lt;/h2&gt;
+&lt;p&gt;This was very important feature to implement as this sets this client apart from other CLI versions.
+This was implemented using &lt;strong&gt;socket.io&lt;/strong&gt; accordingly:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Creating a server&lt;/li&gt;
+&lt;li&gt;Connecting clients to the server&lt;/li&gt;
+&lt;li&gt;Create private room for competition&lt;/li&gt;
+&lt;li&gt;Send scores to all clients at end of game&lt;/li&gt;
+&lt;li&gt;Rematch feature&lt;/li&gt;
+&lt;li&gt;Random paragraphs for every race&lt;/li&gt;
+&lt;li&gt;Top 10 high scores&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;getting-into-every-point-in-detail-1&#34;&gt;Getting into every point in detail&lt;/h2&gt;
+&lt;h3 id=&#34;creating-a-server&#34;&gt;Creating a server&lt;/h3&gt;
+&lt;p&gt;I am quite fluent with Javascript and NodeJs, so I used NodeJs for creating server of the application and hosted in on &lt;a href=&#34;http://glitch.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Glitch&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;http://socket.io/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Socket.io&lt;/a&gt; was used to provide web sockets for clients to connect and emit events for server to listen. &lt;a href=&#34;https://www.mongodb.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;MongoDB&lt;/a&gt; was used as database for storing top 10 high scores of clients.&lt;/p&gt;
+&lt;h3 id=&#34;connecting-clients-to-sever&#34;&gt;Connecting clients to sever&lt;/h3&gt;
+&lt;p&gt;Initially the client part was quite tricky as I had not understood socket.io upto basic level. At first I was working on local server or you can localhost. I was using &lt;a href=&#34;https://github.com/socketio/socket.io-client&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;socket.io client&lt;/a&gt; for client side but still took me a whole day to understand the basic and connect a client to the server.&lt;/p&gt;
+&lt;h3 id=&#34;creating-a-private-room-for-competition&#34;&gt;Creating a private room for competition&lt;/h3&gt;
+&lt;p&gt;Now in socket.io you can create different namespace or you can say rooms to join. So I had to get some input from user to create a private channel where they can race otherwise it would create countless problems. I used the crypto node module to provide cryptographic functionality that includes a set of wrappers for OpenSSL’s hash, HMAC, cipher, decipher, sign, and verify functions and generated random strings with it every time.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;const roomNumber = crypto
+            .randomBytes(12)
+            .toString(&#39;base64&#39;)
+            .replace(/[+/=]+/g, &#39;&#39;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Another problem was how the server would know the number of players in a room so that it can emit an event for race to start. For that I asked number of players from client they wanted to race with (using the npm package &lt;a href=&#34;https://www.npmjs.com/package/inquirer&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;inquirer&lt;/a&gt;.)&lt;/p&gt;
+&lt;p&gt;So when the user joined the room I emitted all the information of client to sever so that it can work according to that.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;// Emitting client info on joining the room
+
+  _socket.on(&#39;room&#39;, function (val) {
+    _socket.emit(&#39;join&#39;, {roomName: val.value, username: data.username, number: data.number, randomNumber: data.randomNumber})
+  })
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now when the server knew that all the clients have joined the race it emitted an event to clients and started the race. It was important to send random paragraphs on every connection and also same paragraph to all clients in a same room.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;/**
+* @function randomNumRetry
+*/
+
+function randomNumRetry () {
+  randomNumber = Math.floor((Math.random() * paras.length))
+  quote = paras[randomNumber].para
+  if (quote.length &amp;lt; 100) {
+    quote = paras[randomNumber].para + &#39; &#39; + paras[randomNumber - 1].para
+  }
+  return quote
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;When everything was in order and every client completed the race, the server emitted an event sending all the scores to every client and asking if they wanted a rematch. Similarly for a rematch random paragraph was generated.&lt;/p&gt;
+&lt;h3 id=&#34;top-10-high-scores&#34;&gt;Top 10 high scores&lt;/h3&gt;
+&lt;p&gt;For this feature to work I initially created a shell database with ten anonymous users with their scores initialized to 0. Now whenever someone plays an online game and score greater than 10th highest score in database, it replaces the 10th highest scorer with the user in the database (this was done to avoid excessive use of database).&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;// Getting documents from databse
+
+      Score.findOne({_id: process.env.ID}, (err, players) =&amp;gt; {
+        if (err) throw new Error(err)
+        let playersArray = players.players.sort(function (a, b) {
+          return b.score - a.score
+        })
+        let lowestScore = []
+        lowestScore.push(playersArray[playersArray.length - 1].score)
+
+        // checking if last score is less then current score
+        function remove () {
+          // First removing last player
+          Score.update({_id: process.env.ID}, {$pop: {players: 1}}, (err) =&amp;gt; {
+            if (err) throw new Error(err)
+            console.log(&#39;Removed last player&#39;)
+          })
+        }
+
+        function add () {
+          // Then updating current player
+          Score.update({_id: process.env.ID}, {$push: {players: {score, username}}}, (err) =&amp;gt; {
+            if (err) throw new Error(err)
+            console.log(&#39;Added new High score&#39;)
+          })
+        }
+
+        async function update () {
+          // Then again sorting it correctly
+          await Score.update({_id: process.env.ID}, {$push: {players: {$each: [], $sort: -1}}}, (err) =&amp;gt; {
+            if (err) throw new Error(err)
+            console.log(&#39;Sorted in descending order after adding&#39;)
+          })
+        }
+        if (score &amp;gt; lowestScore[0]) {
+          (async () =&amp;gt; {
+            Promise.all([update()]).then(async () =&amp;gt; {
+              await remove()
+              await add()
+              await update()
+            })
+          })()
+        }
+      })
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2 id=&#34;support-us&#34;&gt;Support Us&lt;/h2&gt;
+&lt;p&gt;This project was a great learning experience for me and we (my friends and I) are looking to build more such awesome projects in the future. We are a bunch of undergrads passionate about software development looking to make cool stuff. A little motivation and support helps us a lot. If you like this nifty hack you can support us by doing any (or all 😉 ) of the following:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;⭐️ Star us on &lt;a href=&#34;https://github.com/p-society/typeracer-cli&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Github&lt;/a&gt; and make it trend so that other people can know about our project.&lt;/li&gt;
+&lt;li&gt;Install it and increase our download count on npm.&lt;/li&gt;
+&lt;li&gt;Tweet about it (our handle is psociiit).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Thanks to Palash Nigam for helping me to write this article and also Shibasis Patel for sharing this cool idea.&lt;/p&gt;
+&lt;h3 id=&#34;did-you-find-this-page-helpful-consider-sharing-it-&#34;&gt;Did you find this page helpful? Consider sharing it 🙌&lt;/h3&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

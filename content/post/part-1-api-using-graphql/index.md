@@ -15,6 +15,7 @@ tags:
 - testing
 categories:
 - opensource
+- tech
 image:
   placement: 2
   caption: "[Image](https://user-images.githubusercontent.com/24803604/50481874-edac8280-0a09-11e9-837b-3e64409c21fb.png)"
