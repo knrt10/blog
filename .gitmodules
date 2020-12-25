@@ -1,0 +1,4 @@
+[submodule "public"]
+	path = public
+	url = https://github.com/knrt10/knrt10.github.io.git
+	branch = master
