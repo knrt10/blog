@@ -17,3 +17,8 @@
   name = "Site source code"
   url = "https://github.com/knrt10/blog"
   weight = 30
+
+[[main]]
+  name = "RSS feed"
+  url = "post/index.xml"
+  weight = 40
