@@ -7,8 +7,8 @@ headless = true  # This file represents a page section.
 active = true  # Activate this widget? true/false
 weight = 20  # Order that this section will appear.
 
-title = "New changes"
-subtitle = "Shifted my blogs from Medium"
+title = "Check out my new article"
+subtitle = "Shifted my blogs from all platforms"
 
 [content]
   # Page type to display. E.g. post, talk, or publication.
