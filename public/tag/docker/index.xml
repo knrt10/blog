@@ -5,12 +5,1126 @@
     <link>/tag/docker/</link>
       <atom:link href="/tag/docker/index.xml" rel="self" type="application/rss+xml" />
     <description>docker</description>
-    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><copyright>knrt10 © 2020</copyright><lastBuildDate>Sat, 29 Dec 2018 00:00:00 +0000</lastBuildDate>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><copyright>knrt10 © 2020</copyright><lastBuildDate>Sun, 30 Dec 2018 00:00:00 +0000</lastBuildDate>
     <image>
       <url>/images/icon_hudaf87b0bbf6edf362efcd690a86c5023_625_512x512_fill_lanczos_center_2.png</url>
       <title>docker</title>
       <link>/tag/docker/</link>
     </image>
+    
+    <item>
+      <title>Part 2:- API using GraphQL and Node.js</title>
+      <link>/post/part-2-api-using-graphql/</link>
+      <pubDate>Sun, 30 Dec 2018 00:00:00 +0000</pubDate>
+      <guid>/post/part-2-api-using-graphql/</guid>
+      <description>&lt;p&gt;This is Article 2 for this series. You can find &lt;a href=&#34;https://knrt10.netlify.app/post/part-1-api-using-graphql/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;first article here&lt;/a&gt;. Our task now is to setup our graphQL API and work with it.&lt;/p&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;nav id=&#34;TableOfContents&#34;&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href=&#34;#about-this-article&#34;&gt;About this Article&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#graphql-is-the-better-rest&#34;&gt;GraphQL is the better REST&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#data-fetching-with-rest-vs-graphql&#34;&gt;Data Fetching with REST vs GraphQL&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#no-more-over-and-underfetching&#34;&gt;No more Over and Underfetching&lt;/a&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;a href=&#34;#overfetching-downloading-superfluous-data&#34;&gt;Overfetching: Downloading superfluous data&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&#34;#underfetching-and-the-n1-problem&#34;&gt;Underfetching and the n+1 problem&lt;/a&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#benefits-of-a-schema--type-system&#34;&gt;Benefits of a Schema &amp;amp; Type System&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#setting-up-graphql&#34;&gt;Setting up GraphQL&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#accessing-the-api&#34;&gt;Accessing the API&lt;/a&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;a href=&#34;#registering-user-to-database&#34;&gt;&lt;strong&gt;Registering User to Database&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&#34;#login-api&#34;&gt;&lt;strong&gt;Login API&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#docker-users&#34;&gt;Docker Users&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#commiting-our-changes&#34;&gt;Commiting our changes&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#conclusion&#34;&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#support&#34;&gt;Support&lt;/a&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;a href=&#34;#did-you-find-this-page-helpful-consider-sharing-it-&#34;&gt;Did you find this page helpful? Consider sharing it 🙌&lt;/a&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;
+&lt;h2 id=&#34;about-this-article&#34;&gt;About this Article&lt;/h2&gt;
+&lt;p&gt;In this article you will learn the following things:-&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;About GraphQL and why to use it&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Setup GraphQL&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Register User to Database&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Login User and get token using JWT&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Write tests for the above setup&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;graphql-is-the-better-rest&#34;&gt;GraphQL is the better REST&lt;/h2&gt;
+&lt;p&gt;Over the past decade, &lt;a href=&#34;https://en.wikipedia.org/wiki/Representational_state_transfer&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;REST&lt;/a&gt; has become the standard (yet a fuzzy one) for designing web APIs. It offers some great ideas, such as &lt;em&gt;stateless servers&lt;/em&gt; and &lt;em&gt;structured access to resources&lt;/em&gt;. However, REST APIs have shown to be too inflexible to keep up with the rapidly changing requirements of the clients that access them.&lt;/p&gt;
+&lt;p&gt;GraphQL was developed to cope with the need for more flexibility and efficiency! It solves many of the shortcomings and inefficiencies that developers experience when interacting with REST APIs.&lt;/p&gt;
+&lt;p&gt;To illustrate the major differences between REST and GraphQL when it comes to fetching data from an API, let’s consider a simple example scenario: In a blogging application, an app needs to display the titles of the posts of a specific user. The same screen also displays the names of the last 3 followers of that user. How would that situation be solved with REST and GraphQL?&lt;/p&gt;
+&lt;h2 id=&#34;data-fetching-with-rest-vs-graphql&#34;&gt;Data Fetching with REST vs GraphQL&lt;/h2&gt;
+&lt;p&gt;With a REST API, you would typically gather the data by accessing multiple endpoints. In the example, these could be &lt;code&gt;/users/&amp;lt;id&amp;gt;&lt;/code&gt; endpoint to fetch the initial user data. Secondly, there’s likely to be a &lt;code&gt;/users/&amp;lt;id&amp;gt;/posts&lt;/code&gt; endpoint that returns all the posts for a user. The third endpoint will then be the /&lt;code&gt;users/&amp;lt;id&amp;gt;/followers&lt;/code&gt; that returns a list of followers per user.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/4156/1*FM6Y3Qu__9IsbZRZt5bHAA.png&#34; alt=&#34;Image taken from other source&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;Image taken from other source&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;In GraphQL on the other hand, you’d simply send a single query to the GraphQL server that includes the concrete data requirements. The server then responds with a JSON object where these requirements are fulfilled.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/3132/1*9xVwRy6KPILYa5iLoQZnOA.png&#34; alt=&#34;Image taken from other source&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;Image taken from other source&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;no-more-over-and-underfetching&#34;&gt;No more Over and Underfetching&lt;/h2&gt;
+&lt;p&gt;One of the most common problems with REST is that of over- and underfetching. This happens because the only way for a client to download data is by hitting endpoints that return &lt;em&gt;fixed&lt;/em&gt; data structures. It’s very difficult to design the API in a way that it’s able to provide clients with their exact data needs.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;“Think in graphs, not endpoints.” &lt;a href=&#34;http://www.graphql.com/articles/4-years-of-graphql-lee-byron&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Lessons From 4 Years of GraphQL&lt;/a&gt; by &lt;a href=&#34;https://twitter.com/leeb&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Lee Byron&lt;/a&gt;, GraphQL Co-Inventor.&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;overfetching-downloading-superfluous-data&#34;&gt;Overfetching: Downloading superfluous data&lt;/h3&gt;
+&lt;p&gt;&lt;em&gt;Overfetching&lt;/em&gt; means that a client downloads more information than is actually required in the app. Imagine for example a screen that needs to display a list of users only with their names. In a REST API, this app would usually hit the &lt;code&gt;/users&lt;/code&gt; endpoint and receive a JSON array with user data. This response however might contain more info about the users that are returned, e.g. their birthdays or addresses - information that is useless for the client because it only needs to display the users’ names.&lt;/p&gt;
+&lt;h3 id=&#34;underfetching-and-the-n1-problem&#34;&gt;Underfetching and the n+1 problem&lt;/h3&gt;
+&lt;p&gt;Another issue is &lt;em&gt;underfetching&lt;/em&gt; and the &lt;em&gt;n+1&lt;/em&gt; requests problem. Underfetching generally means that a specific endpoint doesn’t provide enough of the required information. The client will have to make additional requests to fetch everything it needs. This can escalate to a situation where a client needs to first download a list of elements, but then needs to make one additional request per element to fetch the required data.&lt;/p&gt;
+&lt;p&gt;As an example, consider the same app would also need to display the last three followers per user. The API provides the additional endpoint &lt;code&gt;/users/&amp;lt;user-id&amp;gt;/followers&lt;/code&gt;. In order to be able to display the required information, the app will have to make one request to the &lt;code&gt;/users&lt;/code&gt; endpoint and then hit the &lt;code&gt;/users/&amp;lt;user-id&amp;gt;/followers&lt;/code&gt; endpoint for &lt;em&gt;each&lt;/em&gt; user.&lt;/p&gt;
+&lt;h2 id=&#34;benefits-of-a-schema--type-system&#34;&gt;Benefits of a Schema &amp;amp; Type System&lt;/h2&gt;
+&lt;p&gt;GraphQL uses a strong type system to define the capabilities of an API. All the types that are exposed in an API are written down in a &lt;em&gt;schema&lt;/em&gt; using the GraphQL Schema Definition Language (SDL). This schema serves as the contract between the client and the server to define how a client can access the data.&lt;/p&gt;
+&lt;p&gt;Once the schema is defined, the teams working on frontend and backends can do their work without further communication since they both are aware of the definite structure of the data that’s sent over the network.&lt;/p&gt;
+&lt;p&gt;Frontend teams can easily test their applications by mocking the required data structures. Once the server is ready, the switch can be flipped for the client apps to load the data from the actual API.&lt;/p&gt;
+&lt;h2 id=&#34;setting-up-graphql&#34;&gt;Setting up GraphQL&lt;/h2&gt;
+&lt;p&gt;I hope I taught you little bit about graphQL, to know more you can check out &lt;a href=&#34;https://graphql.org/learn/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;here&lt;/a&gt;. GraphQL is a query language for your API, and a server-side runtime for executing queries by using a type system you define for your data. GraphQL isn’t tied to any specific database or storage engine and is instead backed by your existing code and data. A GraphQL service is created by defining types and fields on those types, then providing functions for each field on each type. We will be using &lt;a href=&#34;https://github.com/graphql/express-graphql&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;express-graphql&lt;/a&gt; for our application. So run this command in your terminal&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;npm i --quiet graphql express-graphql --save&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Non npm users just copy this to &lt;code&gt;package.json&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;&amp;quot;express-graphql&amp;quot;: &amp;quot;^0.7.1&amp;quot;,
+&amp;quot;graphql&amp;quot;: &amp;quot;^14.0.2&amp;quot;,
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We will require our installed module and use this, so now copy this to your &lt;code&gt;src/app.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;const graphqlHTTP = require(&amp;quot;express-graphql&amp;quot;);
+import { schema } from &amp;quot;./schemas&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Also change our member function &lt;code&gt;private this.initAppRoutes() {}&lt;/code&gt; in &lt;code&gt;src/app.ts&lt;/code&gt; to the code given below.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;private initAppRoutes() {
+  this.app.use(&amp;quot;/graphql&amp;quot;, graphqlHTTP({
+    schema, 
+    graphiql: true,
+  }));
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You will encounter some error, so lets work and solve them. Firstly, we need to create a schemas folder inside src. Then create a 5 files inside it&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;userSchema.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;graphql.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;userLoginSchema.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;userRegisterSchema.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;index.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Inside &lt;code&gt;src/schemas/userSchema.ts&lt;/code&gt; copy this&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import bcrypt = require(&amp;quot;bcrypt-nodejs&amp;quot;);
+import { Schema } from &amp;quot;mongoose&amp;quot;;
+import mongoose = require(&amp;quot;mongoose&amp;quot;);
+
+mongoose.Promise = global.Promise;
+
+/**
+ * This is Schema for User
+ * @constant {UserSchema}
+ */
+export const UserSchema = new Schema({
+  id: {
+    type: String,
+  },
+  username: {
+    type: String,
+    trim: true,
+    unique: true,
+    select: true,
+  },
+  name: {
+    type: String,
+    select: true,
+    required: true,
+  },
+  password: {
+    type: String,
+    select: false,
+  },
+}, {
+  timestamps: {},
+});
+
+UserSchema.methods.generateHash = function(password): boolean {
+  return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
+};
+
+UserSchema.methods.validPassword = function(password): boolean {
+  return bcrypt.compareSync(password, this.password);
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;This file defines mongoose schema for our database.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 1–3:-&lt;/em&gt; Requiring necessary module.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 11–32:-&lt;/em&gt; We are exporting our schema on line 11. On the same line we create a new Schema with properties specified below. Lets expain username property. username will be of type String and it will be unique. What select property does that is when we call this schema it will show the property of user which have select as true. You may notice we have specified select: false for password on &lt;em&gt;line 28&lt;/em&gt;. It means we won’t be getting password by default for any queries we execute for user.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 34–40:-&lt;/em&gt; We defined 2 methods for users to generate a hashed password and validate that password.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Inside &lt;code&gt;src/schemas/graphql.ts&lt;/code&gt; copy this&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import { GraphQLNonNull, GraphQLObjectType, GraphQLSchema } from &amp;quot;graphql&amp;quot;;
+import { login, register } from &amp;quot;../routes&amp;quot;;
+import { userLoginSchema } from &amp;quot;./userLoginSchema&amp;quot;;
+import { userRegisterSchema } from &amp;quot;./userRegisterSchema&amp;quot;;
+
+// Define the Query type
+const queryType = new GraphQLObjectType({
+  name: &amp;quot;Query&amp;quot;,
+  fields: {
+    loginUser: {
+      type: new GraphQLNonNull(userRegisterSchema.responseType),
+      // `args` describes the arguments that the `user` query accepts
+      args: {
+        input: { type: userLoginSchema.UserInput },
+      },
+      async resolve(_, args) {
+        const val = await login(args);
+        return val;
+      },
+    },
+  },
+});
+
+// Defining Mutation
+const mutationType = new GraphQLObjectType({
+  name: &amp;quot;Mutation&amp;quot;,
+  fields: {
+    registerUser: {
+      type: new GraphQLNonNull(userRegisterSchema.responseType),
+      // `args` describes the arguments that the `user` query accepts
+      args: {
+        input: { type: userRegisterSchema.UserInput },
+      },
+      async resolve(_, args) {
+        const val = await register(args);
+        return val;
+      },
+    },
+  },
+});
+
+export const schema = new GraphQLSchema({
+  query: queryType,
+  mutation: mutationType,
+});
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;In this file we are defining our schema for graphQL here.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 7–22:-&lt;/em&gt; We define querytype as type query. In this we will be defining all our queries. fileds property tell all queries we can use. Line 10–15 will be like this for example.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;query loginUser($input userInputLogin) {
+loginUser(input: $input){}
+where $input is
+{
+input {
+username: &amp;quot;anything&amp;quot;,
+password: &amp;quot;anything,
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;. After this when query is written and input is provided line 16 will execute and it will asynchronously execute resolve function which is provided 2 arguments. args contains the input that we provided. After we wait for our login result as login returns a promise. We return the value on line 18. Similarly &lt;em&gt;line 25–40&lt;/em&gt; work but it is of type mutation, it is somewhat like POST request.&lt;/p&gt;
+&lt;p&gt;Inside &lt;code&gt;src/schemas/userLoginSchema.ts&lt;/code&gt; copy this&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import { GraphQLInputObjectType, GraphQLString } from &amp;quot;graphql&amp;quot;;
+
+// User input is getting input from user
+const UserInput = new GraphQLInputObjectType({
+  name: &amp;quot;UserInputLogin&amp;quot;,
+  fields: {
+    username: { type: GraphQLString },
+    password: { type: GraphQLString },
+  },
+});
+
+export const userLoginSchema = {
+  UserInput,
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;In this file we define the login Schema. It will be the return type of our input that we are providing.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Inside &lt;code&gt;src/schemas/userRegisterSchema.ts&lt;/code&gt; copy this&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import { GraphQLBoolean, GraphQLID, GraphQLInputObjectType, GraphQLInt, GraphQLNonNull, GraphQLObjectType, GraphQLString } from &amp;quot;graphql&amp;quot;;
+
+// User type
+const userType = new GraphQLObjectType({
+  name: &amp;quot;User&amp;quot;,
+  fields: {
+    id: { type: GraphQLID },
+    username: { type: GraphQLString },
+    name: { type: GraphQLString },
+    password: { type: GraphQLString },
+    token: { type: GraphQLString },
+    createdAt: { type: GraphQLString },
+    updatedAt: { type: GraphQLString },
+  },
+});
+
+// Data reponse of user
+const DataResponse = new GraphQLObjectType({
+  name: &amp;quot;DataResponse&amp;quot;,
+  fields: {
+    success: { type: GraphQLBoolean },
+    user: { type: userType },
+    token: { type: GraphQLString },
+  },
+});
+
+// Response from User
+const responseType = new GraphQLObjectType({
+  name: &amp;quot;Response&amp;quot;,
+  fields: {
+    code: { type: new GraphQLNonNull(GraphQLInt) },
+    message: { type: new GraphQLNonNull(GraphQLString) },
+    data: { type: new GraphQLNonNull(DataResponse) },
+  },
+});
+
+// User input is getting input from user
+const UserInput = new GraphQLInputObjectType({
+  name: &amp;quot;UserInputRegister&amp;quot;,
+  fields: {
+    username: { type: GraphQLString },
+    name: { type: GraphQLString },
+    password: { type: GraphQLString },
+  },
+});
+
+export const userRegisterSchema = {
+  userType,
+  DataResponse,
+  responseType,
+  UserInput,
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;In this file we define the register Schema. It will be the return type of our input that we are providing.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;And finally copy this to &lt;code&gt;src/schemas/index.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;export * from &amp;quot;./userSchema&amp;quot;;
+export * from &amp;quot;./graphql&amp;quot;;
+export * from &amp;quot;./userRegisterSchema&amp;quot;;
+export * from &amp;quot;./userLoginSchema&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You will be getting error Cannot find module &lt;code&gt;&#39;../routes&#39;&lt;/code&gt;. Don’t worry we will fix it later. Let’s first create some important things. Create a folder models and 2 files inside it&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;response.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;index.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Copy this inside &lt;code&gt;src/models/response.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;export class Response {
+  public code: number;
+  public message: string;
+  public data: any;
+  constructor(code: number, message: string, data: any) {
+    this.code = code;
+    this.message = message;
+    this.data = data;
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Copy this inside &lt;code&gt;src/models/index.ts&lt;/code&gt; :&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;export * from &amp;quot;./response&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To modulerize our code we will create another folder functions and a file inside it&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;complete.ts&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Copy this inside &lt;code&gt;src/functions/complete.ts&lt;/code&gt; :&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import { Response } from &amp;quot;../models&amp;quot;;
+
+export function completeRequest(promise: Promise&amp;lt;Response&amp;gt;): any {
+  const res = promise.then((response) =&amp;gt; {
+    const finallResponse = {
+      code: response.code,
+      message: response.message,
+      data: response.data,
+    };
+    return finallResponse;
+  }).catch((errorRes) =&amp;gt; {
+    const finallResponse = {
+      code: errorRes.code,
+      message: errorRes.message,
+      data: errorRes.data,
+    };
+    return finallResponse;
+  });
+  return res;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This file returns a promise that contains final response of data. We resolve this promise in our &lt;code&gt;graphql.ts&lt;/code&gt; file.&lt;/p&gt;
+&lt;p&gt;Before solving our routes folder issue we will first create a folder called interface and then create 2 files inside it, given below:-&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;userInterface.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;index.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;One of TypeScript’s core principles is that type-checking focuses on the &lt;em&gt;shape&lt;/em&gt; that values have. This is sometimes called “duck typing” or “structural subtyping”. In TypeScript, interfaces fill the role of naming these types, and are a powerful way of defining contracts within your code as well as contracts with code outside of your project.&lt;/p&gt;
+&lt;p&gt;copy this inside &lt;code&gt;src/interfaces/userInteface.ts&lt;/code&gt; :&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import {Document} from &amp;quot;mongoose&amp;quot;;
+
+/**
+ * This is interface for user
+ * @interface
+ * @extends {Document}
+ */
+export interface IUser extends Document {
+  // tslint:disable-next-line:semicolon
+  username: string,
+  // tslint:disable-next-line:semicolon
+  password: string,
+  // tslint:disable-next-line:semicolon
+  _id: any,
+  // tslint:disable-next-line:semicolon
+  name: string,
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And copy this inside &lt;code&gt;src/interfaces/index.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;export * from &amp;quot;./userInterface&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now everthing is complete. Its time to create routes folder. Create 2 files inside it&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;user.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;index.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;And copy this &lt;code&gt;inside src/routes/user.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import jwt = require(&amp;quot;jsonwebtoken&amp;quot;);
+import { model } from &amp;quot;mongoose&amp;quot;;
+import { completeRequest } from &amp;quot;../functions/complete&amp;quot;;
+import { IUser } from &amp;quot;../interfaces&amp;quot;;
+import { Response } from &amp;quot;../models&amp;quot;;
+import { UserSchema } from &amp;quot;../schemas&amp;quot;;
+import { Config } from &amp;quot;../shared&amp;quot;;
+
+const User = model(&amp;quot;User&amp;quot;, UserSchema);
+
+  /**
+   * This is route for registering user in database
+   * @param args
+   */
+
+export async function register(args) {
+  const promise: Promise&amp;lt;Response&amp;gt; = new Promise&amp;lt;Response&amp;gt;((resolve, reject) =&amp;gt; {
+
+    const secret: any = Config.secretKeys.jwtSecret;
+      // getting data from args
+    const username = String(args.input.username).trim();
+    if (!username || !args.input.username || !args.input.name) {
+      reject(new Response(200, &amp;quot;Please fill both username and name&amp;quot;, {
+        success: false,
+      }));
+    } else if (username.length &amp;lt; 4 || args.input.name.trim().length &amp;lt; 4) {
+      reject(new Response(200, &amp;quot;Username and name should be contain atleast 4 characters&amp;quot;, {
+        success: false,
+      }));
+    } else {
+      const name = args.input.name.trim();
+      User.findOne({ username }).then((user: any) =&amp;gt; {
+        if (user !== null) {
+          reject(new Response(200, &amp;quot;username already in use&amp;quot;, {
+            success: false,
+          }));
+        } else {
+          const newUser: any = new User({
+            username,
+            name,
+          });
+
+          newUser.id = newUser._id;
+          // generating new hashed password
+          newUser.password = newUser.generateHash(args.input.password);
+          newUser.save().then((user: IUser) =&amp;gt; {
+
+            const token = jwt.sign({ id: user._id }, secret, {
+              expiresIn: &amp;quot;23h&amp;quot;,
+            });
+
+            resolve(new Response(200, &amp;quot;Successful response&amp;quot;, {
+              success: true,
+              user,
+              token,
+            }));
+          });
+        }
+      });
+    }
+  });
+  const val = await completeRequest(promise);
+  return val;
+}
+
+export async function login(args) {
+  const promise: Promise&amp;lt;Response&amp;gt; = new Promise&amp;lt;Response&amp;gt;((resolve, reject) =&amp;gt; {
+
+    if (!args.input.username || !args.input.password) {
+      reject(new Response(200, &amp;quot;Please enter both field username and password&amp;quot;, {
+        success: false,
+      }));
+    }
+    // Getting data from req.body
+    const username = args.input.username;
+    const secret: any = Config.secretKeys.jwtSecret;
+    // Searching for User in database
+    User.findOne({ username }).select(&amp;quot;password id createdAt updatedAt&amp;quot;).then((user: any) =&amp;gt; {
+      if (!user) {
+        reject(new Response(200, &amp;quot;Sorry, No user found&amp;quot;, {
+          success: false,
+        }));
+      } else {
+        if (!user.validPassword(args.input.password)) {
+          reject(new Response(200, &amp;quot;Incorrect Password&amp;quot;, {
+            success: false,
+          }));
+        } else {
+          const token = jwt.sign({ id: user._id }, secret, {
+            expiresIn: &amp;quot;23h&amp;quot;,
+          });
+          resolve(new Response(200, &amp;quot;Successful response&amp;quot;, {
+            success: true,
+            user,
+            token,
+          }));
+        }
+      }
+    });
+  });
+  const val = await completeRequest(promise);
+  return val;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 1–7:-&lt;/em&gt; We require necessary modules.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 9:-&lt;/em&gt; We create a model for our userSchema.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 16:-&lt;/em&gt; We export our function to register user to database. This function is returning a promise. The parameter args contains input from user.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 22–29:-&lt;/em&gt; We write tests for wrong input from user and reject our promise with our Response class that we created in response.ts.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 32–37:-&lt;/em&gt; If everything from user side looks fine, we check whether the username entered by user is already in database or not. If yes we reject with another new response.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 38–41:-&lt;/em&gt; We create a new User.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Lin 45:-&lt;/em&gt; We hash the password using the method we created in userSchema.ts.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 52–57:-&lt;/em&gt; If everything is fine, we resolve our promise and send the required info.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 62–63:-&lt;/em&gt; Our function completeRequest defined in functions folder, takes a promise and resolves it and send back another promise with some our required data. Then we use use await to wait for our data, until it is returned to us and stored inside val. Then we return val.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Similary like this we are working with login function starting from &lt;em&gt;line 66&lt;/em&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Before running our code, lets create our tests for the code we have written so far. Create 2 files inside src/test&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;registerUserQueries.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;loginUserQueries.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Copy this inside &lt;code&gt;src/test/registerUserQueries.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;const query = `mutation registerUser($input: UserInputRegister) {
+  registerUser(input: $input) {
+    code
+    message
+    data {
+      token
+      success
+      user {
+        id
+        createdAt
+        username
+        name
+        password
+        updatedAt
+      }
+    }
+  }
+}
+`;
+
+const registerSuccessfullyQuery = {
+  query: query,
+  operationName: &amp;quot;registerUser&amp;quot;
+  ,
+  variables: {
+    input: {
+      username: &amp;quot;knrt10&amp;quot;,
+      name: &amp;quot;Kautilya&amp;quot;,
+      password: &amp;quot;test&amp;quot;,
+    },
+  },
+};
+
+const registerSuccessfullyQuerySecondUser = {
+  query: query,
+  operationName: &amp;quot;registerUser&amp;quot;
+  ,
+  variables: {
+    input: {
+      username: &amp;quot;knrt191&amp;quot;,
+      name: &amp;quot;Second&amp;quot;,
+      password: &amp;quot;test&amp;quot;,
+    },
+  },
+};
+
+const registerSuccessfullyQueryThirdUser = {
+  query: query,
+  operationName: &amp;quot;registerUser&amp;quot;
+  ,
+  variables: {
+    input: {
+      username: &amp;quot;knrt1912&amp;quot;,
+      name: &amp;quot;Third&amp;quot;,
+      password: &amp;quot;test&amp;quot;,
+    },
+  },
+};
+
+const registerFailNoUsernameQuery = {
+  query: query ,
+  operationName: &amp;quot;registerUser&amp;quot;
+  ,
+  variables: {
+    input: {
+      username: &amp;quot;&amp;quot;,
+      name: &amp;quot;Kautilya&amp;quot;,
+      password: &amp;quot;test&amp;quot;,
+    },
+  },
+};
+
+const registerFailSmallUsernameQuery = {
+  query: query,
+  operationName: &amp;quot;registerUser&amp;quot;
+  ,
+  variables: {
+    input: {
+      username: &amp;quot;d   &amp;quot;,
+      name: &amp;quot;Kautilya&amp;quot;,
+      password: &amp;quot;test&amp;quot;,
+    },
+  },
+};
+
+export const registerqueries = {
+  registerSuccessfullyQuery,
+  registerSuccessfullyQuerySecondUser,
+  registerSuccessfullyQueryThirdUser,
+  registerFailNoUsernameQuery,
+  registerFailSmallUsernameQuery,
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt; In this file we are creating a demo possible queries for register API which user can pass. We use this in our tests.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 1–19:-&lt;/em&gt; It contains our query that we will use later to register user, but in our tests we need our code to automatically create user, so we use this method.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 21–32:-&lt;/em&gt; We are defining a constant that is just an example of data we will be sending to our test route. It is using query that we defined on &lt;em&gt;line 1.&lt;/em&gt; The operation name will be registerUser. Also we are passing variables to our query declared on &lt;em&gt;line 25.&lt;/em&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Rest file contains same type of different cases that a user can enter. We will test those all cases in our tests.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;In the end we are exporting all the constants that we declared in this file, so that they can be used in other files.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;And copy this inside &lt;code&gt;src/test/loginUserQueries.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;const query = `query loginUser($input: UserInputLogin) {
+  loginUser(input: $input) {
+    code,
+    message,
+    data {
+      success
+      user {
+        id
+        name
+        username
+        password
+      }
+      token
+    }
+  }
+}`;
+
+const loginSuccessfullyQuery = {
+  query: query,
+  operationName: &amp;quot;loginUser&amp;quot;
+  ,
+  variables: {
+    input: {
+      username: &amp;quot;knrt10&amp;quot;,
+      password: &amp;quot;test&amp;quot;,
+    },
+  },
+};
+
+const loginFailWrongPasswordQuery = {
+  query: query,
+  operationName: &amp;quot;loginUser&amp;quot;
+  ,
+  variables: {
+    input: {
+      username: &amp;quot;knrt10&amp;quot;,
+      password: &amp;quot;test1&amp;quot;,
+    },
+  },
+};
+
+const loginFailNopassWordorUsernameQuery = {
+  query: query,
+  operationName: &amp;quot;loginUser&amp;quot;
+  ,
+  variables: {
+    input: {
+      username: &amp;quot;&amp;quot;,
+      password: &amp;quot;&amp;quot;,
+    },
+  },
+};
+
+const loginFailwrongUsernamQuery = {
+  query: query,
+  operationName: &amp;quot;loginUser&amp;quot;
+  ,
+  variables: {
+    input: {
+      username: &amp;quot; bla &amp;quot;,
+      password: &amp;quot;shit this is bro&amp;quot;,
+    },
+  },
+};
+
+export const loginQueries = {
+  loginSuccessfullyQuery,
+  loginFailWrongPasswordQuery,
+  loginFailNopassWordorUsernameQuery,
+  loginFailwrongUsernamQuery,
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt; In this file we are creating a demo possible queries for login API which user can pass. We use this in our tests.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Just like registerQueries, this file has a query declared on line 1, which we will use in our test.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Cases that user can enter are declared in rest of file and then finally exported to be used later on in our test file.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Now you need to make changes to your &lt;code&gt;src/test/user-test.spec.ts&lt;/code&gt; Update your whole file to this.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import chai = require(&amp;quot;chai&amp;quot;);
+import chaiAsPromised = require(&amp;quot;chai-as-promised&amp;quot;);
+import chaiHttp = require(&amp;quot;chai-http&amp;quot;);
+import { suite, test } from &amp;quot;mocha-typescript&amp;quot;;
+import { model } from &amp;quot;mongoose&amp;quot;;
+import sinon = require(&amp;quot;sinon&amp;quot;);
+import { Response } from &amp;quot;../models&amp;quot;;
+import { UserSchema } from &amp;quot;../schemas&amp;quot;;
+import { TodoApp } from &amp;quot;../server&amp;quot;;
+import { Config } from &amp;quot;../shared&amp;quot;;
+import { loginQueries } from &amp;quot;./loginUserQueries&amp;quot;;
+import { registerqueries } from &amp;quot;./registerUserQueries&amp;quot;;
+
+const User = model(&amp;quot;User&amp;quot;, UserSchema);
+// starting the server
+const server: TodoApp = new TodoApp(process.env.API_PORT || 3001);
+server.startServer();
+
+chai.use(chaiAsPromised);
+chai.use(chaiHttp);
+
+@suite(&amp;quot;User Test class&amp;quot;)
+class UserTests {
+  static user: any;
+
+  static before() {
+    this.testData = {
+      input: {
+        username: &amp;quot;knrt10&amp;quot;,
+        name: &amp;quot;Kautilya&amp;quot;,
+        password: &amp;quot;test&amp;quot;,
+      },
+    };
+  }
+
+  static after() {
+    // Delete User Created So that it does not provide error in next test
+    User.findOneAndDelete({ username: UserTests.testData.input.username }, () =&amp;gt; {
+      process.exit(0);
+    });
+  }
+
+  private static testData: any;
+  private static token: string;
+
+  @test(&amp;quot;Testing Local Connection - try connection for Local mongodb&amp;quot;)
+  public localDb(done) {
+    setTimeout(() =&amp;gt; {
+      Config.dbSettings.localDatabase = true;
+      const mock = sinon.mock(new TodoApp(process.env.API_PORT || 3001), &amp;quot;constructor&amp;quot;);
+      chai.expect(mock.object.infoString).to.deep.equal(&amp;quot;mongodb://&amp;quot; + Config.dbSettings.connectionString + &amp;quot;/&amp;quot; + Config.dbSettings.database);
+      done();
+    }, 100);
+  }
+
+  @test(&amp;quot;Testing Docker Connection - try connection for docker mongodb&amp;quot;)
+  public dockerDb(done) {
+    Config.dbSettings.localDatabase = false;
+    const mock = sinon.mock(new TodoApp(process.env.API_PORT || 3001), &amp;quot;constructor&amp;quot;);
+    chai.expect(mock.object.infoString).to.deep.equal(&amp;quot;mongodb://&amp;quot; + Config.dbSettings.dockerconnectionString + &amp;quot;/&amp;quot; + Config.dbSettings.database);
+    done();
+  }
+
+  @test(&amp;quot;Testing Online Connection - try connection for online mongodb&amp;quot;)
+  public OnlineDb(done) {
+    Config.dbSettings.authEnabled = true;
+    const mock = sinon.mock(new TodoApp(process.env.API_PORT || 3001), &amp;quot;constructor&amp;quot;);
+    chai.expect(mock.object.infoString).to.deep.equal(&amp;quot;mongodb://&amp;quot; + Config.dbSettings.username + &amp;quot;:&amp;quot; + Config.dbSettings.password + &amp;quot;@&amp;quot;
+      + Config.dbSettings.connectionString + &amp;quot;/&amp;quot; + Config.dbSettings.database);
+    done();
+  }
+
+  @test(&amp;quot;POST Register - try Register User Successfuly&amp;quot;)
+  public createUser(done) {
+    chai.request(&amp;quot;http://localhost:&amp;quot; + server.port)
+      .post(&amp;quot;/graphql&amp;quot;)
+      .send(registerqueries.registerSuccessfullyQuery)
+      .end((err, res) =&amp;gt; {
+        chai.expect(res).to.have.status(200);
+        chai.expect(res.body.data.registerUser).to.deep.equal(new Response(200, &amp;quot;Successful response&amp;quot;, {
+          success: true,
+          user: res.body.data.registerUser.data.user,
+          token: res.body.data.registerUser.data.token,
+        }));
+        done();
+      });
+  }
+
+  @test(&amp;quot;POST Register - Don&#39;t register as user already registered&amp;quot;)
+  public dontRegisterUser(done) {
+    chai.request(&amp;quot;http://localhost:&amp;quot; + server.port)
+      .post(&amp;quot;/graphql&amp;quot;)
+      .send(registerqueries.registerSuccessfullyQuery)
+      .end((err, res) =&amp;gt; {
+        chai.expect(res).to.have.status(200);
+        chai.expect(res.body.data.registerUser).to.deep.equal(new Response(200, &amp;quot;username already in use&amp;quot;, {
+          success: false,
+          token: null,
+          user: null,
+        }));
+        done();
+      });
+  }
+
+  @test(&amp;quot;POST Register - try No username field&amp;quot;)
+  public dontCreateUser(done) {
+    chai.request(&amp;quot;http://localhost:&amp;quot; + server.port)
+      .post(&amp;quot;/graphql&amp;quot;)
+      .send(registerqueries.registerFailNoUsernameQuery)
+      .end((err, res) =&amp;gt; {
+        chai.expect(res).to.have.status(200);
+        chai.expect(res.body.data.registerUser).to.deep.equal(new Response(200, &amp;quot;Please fill both username and name&amp;quot;, {
+          success: false,
+          token: null,
+          user: null,
+        }));
+        done();
+      });
+  }
+
+  @test(&amp;quot;POST Register - try username of small length&amp;quot;)
+  public dontCreateUserLessLength(done) {
+    chai.request(&amp;quot;http://localhost:&amp;quot; + server.port)
+      .post(&amp;quot;/graphql&amp;quot;)
+      .send(registerqueries.registerFailSmallUsernameQuery)
+      .end((err, res) =&amp;gt; {
+        chai.expect(res).to.have.status(200);
+        chai.expect(res.body.data.registerUser).to.deep.equal(new Response(200, &amp;quot;Username and name should be contain atleast 4 characters&amp;quot;, {
+          success: false,
+          token: null,
+          user: null,
+        }));
+        done();
+      });
+  }
+
+  @test(&amp;quot;POST Login - try Successful Login&amp;quot;)
+  public login(done) {
+    chai.request(&amp;quot;http://localhost:&amp;quot; + server.port)
+      .post(&amp;quot;/graphql&amp;quot;)
+      .send(loginQueries.loginSuccessfullyQuery)
+      .end((err, res) =&amp;gt; {
+        UserTests.user = res.body.data.loginUser.data.user;
+        UserTests.token = res.body.data.loginUser.data.token;
+        chai.expect(res).to.have.status(200);
+        chai.expect(res.body.data.loginUser).to.deep.equal(new Response(200, &amp;quot;Successful response&amp;quot;, {
+          success: true,
+          user: res.body.data.loginUser.data.user,
+          token: res.body.data.loginUser.data.token,
+        }));
+        done();
+      });
+  }
+
+  @test(&amp;quot;POST Login - try hit the login with incorrect credentials route&amp;quot;)
+  public loginWithIncorrect(done) {
+    chai.request(&amp;quot;http://localhost:&amp;quot; + server.port)
+      .post(&amp;quot;/graphql&amp;quot;)
+      .send(loginQueries.loginFailWrongPasswordQuery)
+      .end((err, res) =&amp;gt; {
+        chai.expect(res).to.have.status(200);
+        chai.expect(res.body.data.loginUser).to.deep.equal(new Response(200, &amp;quot;Incorrect Password&amp;quot;, {
+          success: false,
+          user: null,
+          token: null,
+        }));
+        done();
+      });
+  }
+
+  @test(&amp;quot;POST Login - try hit the login no password&amp;quot;)
+  public wrongInputFields(done) {
+    chai.request(&amp;quot;http://localhost:&amp;quot; + server.port)
+      .post(&amp;quot;/graphql&amp;quot;)
+      .send(loginQueries.loginFailNopassWordorUsernameQuery)
+      .end((err, res) =&amp;gt; {
+        chai.expect(res).to.have.status(200);
+        chai.expect(res.body.data.loginUser).to.deep.equal(new Response(200, &amp;quot;Please enter both field username and password&amp;quot;, {
+          success: false,
+          user: null,
+          token: null,
+        }));
+        done();
+      });
+  }
+
+  @test(&amp;quot;POST Login - try Posting wrong username&amp;quot;)
+  public NoUser(done) {
+    chai.request(&amp;quot;http://localhost:&amp;quot; + server.port)
+      .post(&amp;quot;/graphql&amp;quot;)
+      .send(loginQueries.loginFailwrongUsernamQuery)
+      .end((err, res) =&amp;gt; {
+        chai.expect(res).to.have.status(200);
+        chai.expect(res.body.data.loginUser).to.deep.equal(new Response(200, &amp;quot;Sorry, No user found&amp;quot;, {
+          success: false,
+          user: null,
+          token: null,
+        }));
+        done();
+      });
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 1–12:-&lt;/em&gt; We require all the necessary files and modules.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 14:-&lt;/em&gt; We create a user model for our tests.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 16–17:-&lt;/em&gt; We start the server of our express application.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 26–34:-&lt;/em&gt; before is a method on chai that executes before our tests start running. So anything declared inside it will execute first.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 36–41:-&lt;/em&gt; Similarly like before method, after method is a predefined method in chai. It will be executed after all the tests have run. It does not depend your tests pass or fail. In Our tests are running inside a class, so we need to declare these methods as static which means that it doesn’t have to be instantiated. In this method we are deleting user that we will create in our tests, so that next that we run our test that user is not already present in our database.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 73–87:-&lt;/em&gt; This tests is checking whether user gets successfully registered to database. We create a post request with data we created in our registerUserQueries.ts. And then this code send data to our code written in user.ts and if returns a response. Then we check assertion wheter the response matches with the required response in our test.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Just like this we create different test cases for all possible situation. Just read the message inside &lt;code&gt;@test(&amp;quot;&amp;quot;)&lt;/code&gt;, you will understand what test case it is about.&lt;/p&gt;
+&lt;p&gt;Remember before running tests your mongoDb server is up and running then when you run &lt;code&gt;npm run build &amp;amp;&amp;amp; npm run coverage&lt;/code&gt; you get&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*SnEx8spfI59SUQ-LMMIPAQ.png&#34; alt=&#34;Project setup and tests until now with 💯 code coverage&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;Project setup and tests until now with 💯 code coverage&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;accessing-the-api&#34;&gt;Accessing the API&lt;/h2&gt;
+&lt;p&gt;First check your mongoDB server is up and running. Then start your server by running the following command&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;npm start&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;To access the API of application open your &lt;a href=&#34;https://github.com/prisma/graphql-playground&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;GraphQL-Playground&lt;/a&gt; and enter url &lt;code&gt;http://localhost:3000/graphql&lt;/code&gt;&lt;/p&gt;
+&lt;h3 id=&#34;registering-user-to-database&#34;&gt;&lt;strong&gt;Registering User to Database&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;Enter Query&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;mutation registerUser($input: UserInputRegister) {
+  registerUser(input: $input) {
+    code
+    message
+    data {
+      token
+      success
+      user {
+        id
+        createdAt
+        username
+        name
+        password
+        updatedAt
+      }
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and then query variable&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;input&amp;quot;: {
+    &amp;quot;username&amp;quot;: &amp;quot;knrt10&amp;quot;,
+    &amp;quot;name&amp;quot;: &amp;quot;Kautilya&amp;quot;,
+    &amp;quot;password&amp;quot;: &amp;quot;test&amp;quot;
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Then hit play button, you will get response like this&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*SRj1ZWuGGqXTwk_ejGAXuQ.png&#34; alt=&#34;registering user to Database&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;registering user to Database&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;login-api&#34;&gt;&lt;strong&gt;Login API&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;Enter Query&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;query loginUser($input: UserInputLogin) {
+  loginUser(input: $input) {
+    code,
+    message,
+    data {
+      success
+      user {
+        id
+        name
+        username
+        password
+      }
+      token
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and then query variable&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;input&amp;quot;: {
+    &amp;quot;username&amp;quot;: &amp;quot;knrt10&amp;quot;,
+    &amp;quot;password&amp;quot;: &amp;quot;test&amp;quot;
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Then after you hit play button you will see this output.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*6m8QJbWW5ZFIo-CO32kfMg.png&#34; alt=&#34;login response&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;login response&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Try playing with it and try to enter wrong data or anything like that. You might find we have covered error for most of the usual cases.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2852/1*5l8uuNHIrTHYNKXM_Be0LA.gif&#34; alt=&#34;playing with GraphQL Playground 📹&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;playing with GraphQL Playground 📹&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;docker-users&#34;&gt;Docker Users&lt;/h2&gt;
+&lt;p&gt;You need to make all the code changes as above and then just run&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;npm run dockerStart&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;After that you can also excess API of application as above with same URL &lt;a href=&#34;http://localhost:3000/graphql.&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;http://localhost:3000/graphql.&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Then after using don’t forget to stop the container by runnnig npm run dockerStop.&lt;/p&gt;
+&lt;h2 id=&#34;commiting-our-changes&#34;&gt;Commiting our changes&lt;/h2&gt;
+&lt;p&gt;Lets commit our new changes for this part. Copy and run the commands given below inside your git repository. Make sure you are in root folder.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;git add .
+git commit -m &amp;quot;Adding part2 changes&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;That is for this part. In this part you learnt following things:-&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Modularize code.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How to create Mongoose Schema.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Why GraphQL is better than REST.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How to setup GraphQL in node.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How to write Schema for GraphQL.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How and write tests and maintain 💯 code coverage 😉.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;In next part you will create schemas for working with CRUD operation on a Todo, only when you are authenticated.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;support&#34;&gt;Support&lt;/h2&gt;
+&lt;p&gt;I wrote this series of articles by using my free time. A little motivation and support helps me a lot. If you like this nifty hack you can support me by doing any (or all 😉 ) of the following:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Follow me on &lt;a href=&#34;http://github.com/knrt10/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Github&lt;/a&gt; for more such projects.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;⭐️ Star it on &lt;a href=&#34;https://github.com/knrt10/Todo-backendAPI&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Github&lt;/a&gt; and make it trend so that other people can know about my project.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;did-you-find-this-page-helpful-consider-sharing-it-&#34;&gt;Did you find this page helpful? Consider sharing it 🙌&lt;/h3&gt;
+</description>
+    </item>
     
     <item>
       <title>Part 1:- API using GraphQL and Node.js</title>
