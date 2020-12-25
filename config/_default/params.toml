@@ -22,7 +22,7 @@ day_night = true
 #   Latest font sets (may require updating): https://sourcethemes.com/academic/themes/
 #   Browse built-in font sets in `themes/academic/data/fonts/`
 #   Browse user installed font sets in `data/fonts/`
-font = "minimal"
+font = "rose"
 
 # Choose a font size.
 # Sizes: XS (extra small), S (small), M (medium), L (large - DEFAULT), XL (extra large)
@@ -57,7 +57,7 @@ description = "Kautilya Tripathi blogs"
 # Enable source code highlighting? true/false
 # Documentation: https://sourcethemes.com/academic/docs/writing-markdown-latex/#highlighting-options
 highlight = true
-highlight_languages = ["r", "go", "js", "yaml", "mermaid", "python"]  # Add support for highlighting additional languages
+highlight_languages = ["r", "go", "js", "yaml", "mermaid", "python", "bash", "shell"]  # Add support for highlighting additional languages
 highlight_style = "solarized-dark"  # For supported styles, see https://cdnjs.com/libraries/highlight.js/
 
 # Enable LaTeX math rendering? true/false
@@ -127,7 +127,7 @@ appointment_url = "https://calendly.com/knrt10"
 sharing_image = ""
 
 # Twitter username (without @). Used when a visitor shares your site on Twitter.
-twitter = ""
+twitter = "knrt_10"
 
 ############################
 ## Regional Settings
@@ -163,7 +163,7 @@ sharing = true
 copyright_license = {enable = false, allow_derivatives = false, share_alike = true, allow_commercial = false, notice = "This work is licensed under {license}"}
 
 # Highlight the site author (superuser) in author lists? (true/false)
-highlight_superuser = false
+highlight_superuser = true
 
 # Link authors to their profile page? (true/false)
 link_authors = true
@@ -196,7 +196,7 @@ plugins_js  = []
   engine = 1
 
   # Which page types are commentable?
-  ommentable = {page = true, post = true, docs = true, project = true, publication = true, talk = true}
+  commentable = {page = true, post = true, docs = true, project = true, publication = true, talk = true}
 
   # Configuration of Disqus.
   [comments.disqus]

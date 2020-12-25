@@ -3,7 +3,6 @@ title: Passing CKA exam
 date: 2020-12-25
 draft: false
 summary: How I passed my Certified Kubenernets Administrator(CKA) exam.
-featured: true
 draft: true
 authors:
 - admin

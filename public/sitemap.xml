@@ -4,20 +4,56 @@
   
   <url>
     <loc>/authors/</loc>
-    <lastmod>2020-12-25T13:24:56+05:30</lastmod>
+    <lastmod>2020-12-25T14:43:22+05:30</lastmod>
   </url>
   
   <url>
     <loc>/categories/</loc>
+    <lastmod>2020-12-25T14:43:22+05:30</lastmod>
   </url>
   
   <url>
-    <loc>/author/kautilya-tripathi/</loc>
-    <lastmod>2020-12-25T13:24:56+05:30</lastmod>
+    <loc>/tag/js/</loc>
+    <lastmod>2020-12-25T14:43:22+05:30</lastmod>
   </url>
   
   <url>
     <loc>/</loc>
+    <lastmod>2020-12-25T14:43:22+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>/tag/node.js/</loc>
+    <lastmod>2020-12-25T14:43:22+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>/tag/opensource/</loc>
+    <lastmod>2020-12-25T14:43:22+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>/category/opensource/</loc>
+    <lastmod>2020-12-25T14:43:22+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>/post/typeracer/</loc>
+    <lastmod>2020-12-25T14:43:22+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>/tags/</loc>
+    <lastmod>2020-12-25T14:43:22+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>/tag/touchtyping/</loc>
+    <lastmod>2020-12-25T14:43:22+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>/author/kautilya-tripathi/</loc>
     <lastmod>2020-12-25T13:24:56+05:30</lastmod>
   </url>
   
@@ -28,10 +64,6 @@
   
   <url>
     <loc>/publication_types/</loc>
-  </url>
-  
-  <url>
-    <loc>/tags/</loc>
   </url>
   
 </urlset>
