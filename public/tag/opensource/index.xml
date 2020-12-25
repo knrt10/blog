@@ -5,12 +5,928 @@
     <link>/tag/opensource/</link>
       <atom:link href="/tag/opensource/index.xml" rel="self" type="application/rss+xml" />
     <description>opensource</description>
-    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><copyright>knrt10 © 2020</copyright><lastBuildDate>Mon, 14 May 2018 00:00:00 +0000</lastBuildDate>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><copyright>knrt10 © 2020</copyright><lastBuildDate>Sat, 29 Dec 2018 00:00:00 +0000</lastBuildDate>
     <image>
       <url>/images/icon_hudaf87b0bbf6edf362efcd690a86c5023_625_512x512_fill_lanczos_center_2.png</url>
       <title>opensource</title>
       <link>/tag/opensource/</link>
     </image>
+    
+    <item>
+      <title>Part 1:- API using GraphQL and Node.js</title>
+      <link>/post/part-1-api-using-graphql/</link>
+      <pubDate>Sat, 29 Dec 2018 00:00:00 +0000</pubDate>
+      <guid>/post/part-1-api-using-graphql/</guid>
+      <description>&lt;p&gt;This article is for people who are interested in learning to write optimized code using &lt;strong&gt;GraphQL&lt;/strong&gt; with unit testing using &lt;strong&gt;mocha and chai&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;Before we start, we need to define the functionality of our API. The application will be a simple todo app. It will create a user in a database who will be able to create, get and delete todos. If you don’t understand the code or get stuck somewhere, you can check out the code from my &lt;a href=&#34;https://github.com/knrt10/Todo-backendAPI&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Github repository&lt;/a&gt;.&lt;/p&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;nav id=&#34;TableOfContents&#34;&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href=&#34;#about-the-series&#34;&gt;About the series&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#what-you-will-learn&#34;&gt;What you will learn?&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#in-this-article&#34;&gt;In this Article&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#requirements&#34;&gt;Requirements&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#project-setup&#34;&gt;Project Setup&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#docker-setup&#34;&gt;&lt;strong&gt;Docker Setup&lt;/strong&gt;&lt;/a&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;a href=&#34;#exploring-container-from-within&#34;&gt;Exploring container from within&lt;/a&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#setting-up-express-server&#34;&gt;Setting up Express server&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#commiting-our-changes&#34;&gt;Commiting our changes&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#conclusion&#34;&gt;Conclusion&lt;/a&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;a href=&#34;#did-you-find-this-page-helpful-consider-sharing-it-&#34;&gt;Did you find this page helpful? Consider sharing it 🙌&lt;/a&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;
+&lt;h2 id=&#34;about-the-series&#34;&gt;About the series&lt;/h2&gt;
+&lt;p&gt;This is a series of 3 articles which will help to write production grade code. I wanted to help others who might have faced same problems as me. This article can help a beginner and also to someone who has good knowledge in node.&lt;/p&gt;
+&lt;h2 id=&#34;what-you-will-learn&#34;&gt;What you will learn?&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;TypeScript (if you don’t write it already).&lt;/li&gt;
+&lt;li&gt;Using Docker for Node projects.&lt;/li&gt;
+&lt;li&gt;Writing a GraphQL API instead of REST.&lt;/li&gt;
+&lt;li&gt;Basics of MongoDB.&lt;/li&gt;
+&lt;li&gt;Logging.&lt;/li&gt;
+&lt;li&gt;Working with JWT(Json Web token).&lt;/li&gt;
+&lt;li&gt;Writing tests and working with code coverage.&lt;/li&gt;
+&lt;li&gt;Writing clean code and linting.&lt;/li&gt;
+&lt;li&gt;Writing modular code.&lt;/li&gt;
+&lt;li&gt;Basics of Promises, async and await.&lt;/li&gt;
+&lt;li&gt;Writing production grade code.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;in-this-article&#34;&gt;In this Article&lt;/h2&gt;
+&lt;p&gt;In this article you will be able to do the following things:-&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Setup project&lt;/li&gt;
+&lt;li&gt;Setup docker&lt;/li&gt;
+&lt;li&gt;Write express server and connect to mongodb&lt;/li&gt;
+&lt;li&gt;Write tests for above setup.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;requirements&#34;&gt;Requirements&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://nodejs.org/en/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Node&lt;/a&gt; and npm installed for your OS. We will use node environment to work on this project.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.docker.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Docker&lt;/a&gt; installed for your OS. Along with local working of project, you will learn little bit of docker and how to work on projects if you don’t have node and npm installed.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/prisma/graphql-playground&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;GraphQL-Playground&lt;/a&gt; for testing your API. This is an awesome tool where you will test your APIs and learn how to use this tool.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Important :-&lt;/strong&gt; I will teach how to work with project locally and also how to work with Docker side by side. Those who want to work only with docker, I will refer to them as non npm users. Also we will try to follow TDD(test driven Development) approach.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;project-setup&#34;&gt;Project Setup&lt;/h2&gt;
+&lt;p&gt;Open your development folder and create a new Folder for our project and go to it or copy the following command.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;mkdir graphql-todo&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Now open your code editor inside that folder.&lt;/p&gt;
+&lt;p&gt;If you have &lt;code&gt;npm&lt;/code&gt; installed for your OS run&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;npm init -y&lt;/code&gt;. It will create a package.json file like this&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;
+{
+  &amp;quot;name&amp;quot;: &amp;quot;graphql-todo&amp;quot;,
+  &amp;quot;version&amp;quot;: &amp;quot;1.0.0&amp;quot;,
+  &amp;quot;description&amp;quot;: &amp;quot;&amp;quot;,
+  &amp;quot;main&amp;quot;: &amp;quot;index.js&amp;quot;,
+  &amp;quot;scripts&amp;quot;: {
+    &amp;quot;test&amp;quot;: &amp;quot;echo \&amp;quot;Error: no test specified\&amp;quot; &amp;amp;&amp;amp; exit 1&amp;quot;
+  },
+  &amp;quot;keywords&amp;quot;: [],
+  &amp;quot;author&amp;quot;: &amp;quot;&amp;quot;,
+  &amp;quot;license&amp;quot;: &amp;quot;ISC&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;non npm users just create a &lt;code&gt;package.json&lt;/code&gt; file and copy the above contents. You can edit description to anything you like.&lt;/p&gt;
+&lt;p&gt;We will be writing code in &lt;a href=&#34;http://typescriptlang.org/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Typescript&lt;/a&gt; so we will need something that will compile our code fast and minify the process. So for this we will use &lt;a href=&#34;http://gulpjs.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Gulp&lt;/a&gt;. Run the given command below in your terminal inside the project.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;npm i --quiet gulp gulp-sourcemaps gulp-typescript typescript --save-dev&lt;/code&gt; non npm users copy this to your &lt;code&gt;package.json&lt;/code&gt; file.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;&amp;quot;devDependencies&amp;quot;: {
+  &amp;quot;gulp&amp;quot;: &amp;quot;^4.0.0&amp;quot;,
+  &amp;quot;gulp-sourcemaps&amp;quot;: &amp;quot;^2.6.4&amp;quot;,
+  &amp;quot;gulp-typescript&amp;quot;: &amp;quot;^5.0.0&amp;quot;,
+  &amp;quot;typescript&amp;quot;: &amp;quot;^3.2.2&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now you have &lt;em&gt;gulp&lt;/em&gt; and &lt;em&gt;typescript&lt;/em&gt; installed. We will now create a gulpfile and write our code to minify the process of building the project. Follow the step below.&lt;/p&gt;
+&lt;p&gt;Create a &lt;code&gt;gulpfile.js&lt;/code&gt; inside root directory and copy this code.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;const gulp = require(&amp;quot;gulp&amp;quot;);
+const ts = require(&amp;quot;gulp-typescript&amp;quot;);
+const sourcemaps = require(&amp;quot;gulp-sourcemaps&amp;quot;);
+const tsProject = ts.createProject(&amp;quot;tsconfig.json&amp;quot;, {
+  typescript: require(&amp;quot;typescript&amp;quot;)
+});
+
+gulp.task(&amp;quot;build&amp;quot;, () =&amp;gt; {
+  gulp.src(&amp;quot;process.yml&amp;quot;)
+    .pipe(gulp.dest(&amp;quot;dist&amp;quot;));
+   
+  return tsProject.src()
+    .pipe(sourcemaps.init())
+    .pipe(tsProject())
+    .js
+    .pipe(sourcemaps.write())
+    .pipe(gulp.dest(&amp;quot;dist&amp;quot;));  
+});
+
+gulp.task(&amp;quot;watchTask&amp;quot;, function () {
+  gulp.watch(&amp;quot;src/**/*.ts&amp;quot;, [&amp;quot;build&amp;quot;]);
+});
+
+gulp.task(&amp;quot;default&amp;quot;, gulp.series(&amp;quot;build&amp;quot;));
+gulp.task(&amp;quot;watch&amp;quot;, gulp.series(&amp;quot;build&amp;quot;, &amp;quot;watchTask&amp;quot;));
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 1–3&lt;/em&gt;:- We are requiring our modules.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 4&lt;/em&gt;: We are using API of gulp-typescript and creating our TS project using tsconfig.json file which we will create later.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 8&lt;/em&gt;:- We are using Gulp API task and creating a task name build.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 9–10&lt;/em&gt;:- We are using Gulp API src and taking process.yml file as source(we will create it later) and piping it to our destination folder **dist.**Here &lt;code&gt;gulp.src&lt;/code&gt; creates a readble stream and with the help of node streams we pipe it to a writable stream created by &lt;code&gt;gulp.dest&lt;/code&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 12–17&lt;/em&gt;:- We are copying our whole code as per tsconfig.json and converting it to Javascript and pasting it to &lt;strong&gt;dist&lt;/strong&gt; folder.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 20–22&lt;/em&gt;:- We are creating another task watchTask for watching any changes in our build task.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 24–25&lt;/em&gt;:- We are finally using Gulp’s default API for runnig build task and watch API for watching changes to build and watch task.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Create a &lt;code&gt;tsconfig.json&lt;/code&gt; file in root directory and copy this code.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;compilerOptions&amp;quot;: {
+    &amp;quot;emitDecoratorMetadata&amp;quot;: true,
+    &amp;quot;experimentalDecorators&amp;quot;: true,
+    &amp;quot;outDir&amp;quot;: &amp;quot;./dist&amp;quot;,
+    &amp;quot;moduleResolution&amp;quot;: &amp;quot;node&amp;quot;,
+    &amp;quot;baseUrl&amp;quot;: &amp;quot;./src&amp;quot;,
+    &amp;quot;sourceMap&amp;quot;: true,
+    &amp;quot;pretty&amp;quot;: true,
+    &amp;quot;strictNullChecks&amp;quot;: true,
+    &amp;quot;module&amp;quot;: &amp;quot;commonjs&amp;quot;,
+    &amp;quot;target&amp;quot;: &amp;quot;es6&amp;quot;,
+    &amp;quot;allowJs&amp;quot;: true
+  },
+  &amp;quot;include&amp;quot;: [
+    &amp;quot;src/**/*.ts&amp;quot;
+  ],
+  &amp;quot;exclude&amp;quot;: [
+    &amp;quot;node_modules&amp;quot;
+  ]
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Important&lt;/strong&gt;:- Do notice baseUrl and outDir. &lt;em&gt;baseUrl&lt;/em&gt; is where we will write our TS code and &lt;em&gt;outDir&lt;/em&gt; is where gulp will compile and copy our code to JavaScript.&lt;/p&gt;
+&lt;p&gt;Now create a &lt;code&gt;process.yml&lt;/code&gt; file in root directory and copy this code.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-yaml&#34;&gt;apps:
+  - script    : &#39;app.js&#39;
+    name      : &#39;Backend To-do Application&#39;
+    node_args : &#39;--inspect=0.0.0.0:5858&#39;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We will learn why we are creating this file later on. After this create an empty directory src in our root folder. Up until now you might have project config like this. Those who are going to work only with docker, they will not have &lt;code&gt;package-lock.json&lt;/code&gt; and &lt;code&gt;node_modules&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*1b4XhTSquYNY2iynJfijUw.png&#34; alt=&#34;Project setup until now&#34;&gt;&lt;em&gt;Project setup until now&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;To keep track of our work we will be using &lt;strong&gt;git&lt;/strong&gt;. If not installed you can go through &lt;a href=&#34;https://git-scm.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;git&lt;/a&gt; to install it.&lt;/p&gt;
+&lt;p&gt;In your project initialize your repository as git repository by git init.&lt;/p&gt;
+&lt;p&gt;For working in developement version we will need nodemon and ts-node for reloading our server automatically when any change is made in our file and executing our TS file without building them respectively. We will use &lt;a href=&#34;https://github.com/palantir/tslint&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;TSlint&lt;/a&gt; as our code linter. In your terminal inside project directory run this command.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;npm i --quiet nodemon ts-node tslint tslint-eslint-rules --save-dev&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;&amp;quot;nodemon&amp;quot;: &amp;quot;^1.18.9&amp;quot;,
+&amp;quot;ts-node&amp;quot;: &amp;quot;^7.0.1&amp;quot;,
+&amp;quot;tslint&amp;quot;: &amp;quot;^5.12.0&amp;quot;,
+&amp;quot;tslint-eslint-rules&amp;quot;: &amp;quot;^5.4.0&amp;quot;,
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Create a &lt;code&gt;tslint.json&lt;/code&gt; file inside root directory and copy the code given below.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;defaultSeverity&amp;quot;: &amp;quot;error&amp;quot;,
+  &amp;quot;extends&amp;quot;: [
+    &amp;quot;tslint:recommended&amp;quot;,
+    &amp;quot;tslint-eslint-rules&amp;quot;
+  ],
+  &amp;quot;jsRules&amp;quot;: {},
+  &amp;quot;rules&amp;quot;: {
+    &amp;quot;object-literal-shorthand&amp;quot;: false,
+    &amp;quot;object-literal-sort-keys&amp;quot;: [
+      false
+    ],
+    &amp;quot;ter-indent&amp;quot;: [
+      true,
+      2
+    ],
+    &amp;quot;no-console&amp;quot;: false,
+    &amp;quot;only-arrow-functions&amp;quot;: [
+      false
+    ],
+    &amp;quot;member-access&amp;quot;: false,
+    &amp;quot;max-classes-per-file&amp;quot;: [
+      true,
+      5
+    ],
+    &amp;quot;no-shadowed-variable&amp;quot;: false,
+    &amp;quot;interface-name&amp;quot;: [
+      false
+    ],
+    &amp;quot;max-line-length&amp;quot;: [
+      true,
+      200
+    ],
+    &amp;quot;no-var-requires&amp;quot;: false
+  },
+  &amp;quot;rulesDirectory&amp;quot;: []
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Inside &lt;code&gt;scripts&lt;/code&gt; in &lt;code&gt;package.json&lt;/code&gt; copy the following code.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;&amp;quot;dev&amp;quot;: &amp;quot;nodemon --no-deprecation --watch &#39;src/**/*.ts&#39; --ignore &#39;src/**/*.spec.ts&#39; --exec &#39;ts-node&#39; src/app.ts&amp;quot;,
+&amp;quot;lint&amp;quot;: &amp;quot;tslint -c tslint.json &#39;src/**/*.ts&#39; --fix&amp;quot;,
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We will use &lt;code&gt;npm run dev&lt;/code&gt; for running our code in development mode and &lt;code&gt;npm run lint&lt;/code&gt; to lint our code. Now our actual coding will begin. Create a file inside src folder named as app.ts
+Copy this inside &lt;code&gt;src/app.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;function testFunction(): string {
+ return &amp;quot;Messi and Ronaldo are legends&amp;quot;;
+}
+
+export default testFunction;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now we will test this. Create a &lt;code&gt;test&lt;/code&gt; folder inside &lt;code&gt;src&lt;/code&gt;, and then create a file &lt;code&gt;user-test-spec.ts&lt;/code&gt;. For testing we will install required modules. We will be using &lt;code&gt;mocha&lt;/code&gt; for testing and &lt;code&gt;chai&lt;/code&gt; for assertion. Run this command inside your project.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;npm i --quiet chai chai-http chai-as-promised mocha mocha-typescript sinon --save-dev&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;non npm users copy this inside &lt;code&gt;devDependencies&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;&amp;quot;chai&amp;quot;: &amp;quot;^4.2.0&amp;quot;,
+&amp;quot;chai-as-promised&amp;quot;: &amp;quot;^7.1.1&amp;quot;,
+&amp;quot;chai-http&amp;quot;: &amp;quot;3.0.0&amp;quot;,
+&amp;quot;mocha&amp;quot;: &amp;quot;^5.2.0&amp;quot;,
+&amp;quot;mocha-typescript&amp;quot;: &amp;quot;^1.1.17&amp;quot;,
+&amp;quot;sinon&amp;quot;: &amp;quot;^7.2.2&amp;quot;,
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We will create a script for testing. Copy this code inside &lt;code&gt;scripts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;&amp;quot;test&amp;quot;: &amp;quot;mocha --no-deprecation --timeout 10000 --require ts-node/register **/*.spec.ts&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We can use this command using &lt;code&gt;npm test&lt;/code&gt; . So far our &lt;code&gt;package.json&lt;/code&gt; will look like this.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;name&amp;quot;: &amp;quot;graphql-todo&amp;quot;,
+  &amp;quot;version&amp;quot;: &amp;quot;1.0.0&amp;quot;,
+  &amp;quot;description&amp;quot;: &amp;quot;This is a GraphQL API for todo application&amp;quot;,
+  &amp;quot;main&amp;quot;: &amp;quot;index.js&amp;quot;,
+  &amp;quot;scripts&amp;quot;: {
+    &amp;quot;dev&amp;quot;: &amp;quot;nodemon --no-deprecation --watch &#39;src/**/*.ts&#39; --ignore         &#39;src/**/*.spec.ts&#39; --exec &#39;ts-node&#39; src/app.ts&amp;quot;,
+    &amp;quot;lint&amp;quot;: &amp;quot;tslint -c tslint.json &#39;src/**/*.ts&#39; --fix&amp;quot;,
+    &amp;quot;start&amp;quot;: &amp;quot;gulp &amp;amp;&amp;amp; cd dist/ &amp;amp;&amp;amp; node --inspect=8990 --no-deprecation app.js&amp;quot;,
+    &amp;quot;test&amp;quot;: &amp;quot;mocha --no-deprecation --timeout 10000 --require ts-    node/register **/*.spec.ts&amp;quot;
+  },
+ &amp;quot;keywords&amp;quot;: [],
+ &amp;quot;author&amp;quot;: &amp;quot;&amp;quot;,
+ &amp;quot;license&amp;quot;: &amp;quot;ISC&amp;quot;,
+ &amp;quot;devDependencies&amp;quot;: {
+   &amp;quot;chai&amp;quot;: &amp;quot;^4.2.0&amp;quot;,
+   &amp;quot;chai-as-promised&amp;quot;: &amp;quot;^7.1.1&amp;quot;,
+   &amp;quot;chai-http&amp;quot;: &amp;quot;3.0.0&amp;quot;,
+   &amp;quot;gulp&amp;quot;: &amp;quot;^4.0.0&amp;quot;,
+   &amp;quot;gulp-sourcemaps&amp;quot;: &amp;quot;^2.6.4&amp;quot;,
+   &amp;quot;gulp-typescript&amp;quot;: &amp;quot;^5.0.0&amp;quot;,
+   &amp;quot;mocha&amp;quot;: &amp;quot;^5.2.0&amp;quot;,
+   &amp;quot;mocha-typescript&amp;quot;: &amp;quot;^1.1.17&amp;quot;,
+   &amp;quot;nodemon&amp;quot;: &amp;quot;^1.18.9&amp;quot;,
+   &amp;quot;sinon&amp;quot;: &amp;quot;^7.2.2&amp;quot;,
+   &amp;quot;ts-node&amp;quot;: &amp;quot;^7.0.1&amp;quot;,
+   &amp;quot;tslint&amp;quot;: &amp;quot;^5.12.0&amp;quot;,
+   &amp;quot;tslint-eslint-rules&amp;quot;: &amp;quot;^5.4.0&amp;quot;,
+   &amp;quot;typescript&amp;quot;: &amp;quot;^3.2.2&amp;quot;
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Inside your &lt;code&gt;src/test/user-test.spec.ts&lt;/code&gt; copy this code&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import chai = require(&amp;quot;chai&amp;quot;);
+import chaiAsPromised = require(&amp;quot;chai-as-promised&amp;quot;);
+import { suite, test } from &amp;quot;mocha-typescript&amp;quot;;
+import testFunction from &amp;quot;../app&amp;quot;;
+chai.use(chaiAsPromised);
+
+@suite(&amp;quot;User Test class&amp;quot;)
+class UserTests {
+
+  @test(&amp;quot;testFunction Test - It works fine&amp;quot;)
+  public testFunction(done) {
+    chai.expect(testFunction()).to.deep.equal(&amp;quot;Messi and Ronaldo are legends&amp;quot;);
+    done();
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 1–4:-&lt;/em&gt; We are importing test modules and our file app.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 7–8:-&lt;/em&gt; We are defining suite to run and defining our class UserTests.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 10–16:-&lt;/em&gt; &lt;code&gt;@test&lt;/code&gt; will declare the test message we are running, we also define a public test to run. We use chai.expect to test assetion of test.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Run your test by running &lt;code&gt;npm test&lt;/code&gt; . If everything works fine, it will look like this.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*-w1b3_eXk-ELNXyq6KgBAw.png&#34; alt=&#34;Tests for checking our code.&#34;&gt;&lt;/p&gt;
+&lt;p&gt;To calculate test coverage of our code we will use &lt;a href=&#34;https://github.com/istanbuljs/nyc&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;nyc&lt;/a&gt;. We need to first check that our project is building or not. Copy this to &lt;code&gt;scripts&lt;/code&gt; and then run &lt;code&gt;npm run build&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;&amp;quot;build&amp;quot;: &amp;quot;gulp&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You will get output as show below and a &lt;code&gt;dist&lt;/code&gt; folder will be created.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2404/1*qqoZn-tVZwQB4nZ5xHDJdA.png&#34; alt=&#34;gulp building your project&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Add &lt;code&gt;nyc&lt;/code&gt; module by running &lt;code&gt;npm i --quiet nyc --save-dev&lt;/code&gt; , non npm users copy this into package.json&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;&amp;quot;nyc&amp;quot;: &amp;quot;^13.1.0&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Add the command given below to &lt;code&gt;scripts&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;&amp;quot;coverage&amp;quot;: &amp;quot;nyc --reporter=text mocha --no-deprecation --timeout 10000 dist/test/*.spec.js -x dist/test/*.spec.js&amp;quot;,
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We need to build to latest code first, then after that we will run code coverage by running npm run build &amp;amp;&amp;amp; npm run coverage. This will create a .nyc_output folder, from which our code coverage will be seen. You will see following output.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*83bxvbaEg8q8Sgk6RHNCWw.png&#34; alt=&#34;code coverage 💯&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Above image shows that we have achieved 💯 code coverage which depicts that we have not written any unusable code.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;docker-setup&#34;&gt;&lt;strong&gt;Docker Setup&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;Now we will setup &lt;code&gt;docker&lt;/code&gt; so that non npm users can also run tests and build project without installing node or npm. I assume that the readers have a basic understanding of docker. If you have never used docker before you might wanna check out this guide for getting started with &lt;a href=&#34;https://rominirani.com/docker-tutorial-series-a7e6ff90a023&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Docker&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Create a &lt;strong&gt;Dockerfile&lt;/strong&gt; inside root directory and copy this&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-dockerfile&#34;&gt;FROM node:8
+
+# Install gulp and pm2 globaly
+RUN npm install --quiet -g gulp pm2
+
+# Create app directory
+RUN mkdir -p /usr/src/
+
+WORKDIR /usr/src/
+
+# Install app dependencies
+COPY package.json /usr/src/
+
+RUN npm install --quiet
+
+# Bundle app source
+COPY . /usr/src
+
+# Build the project
+RUN npm run build
+
+WORKDIR /usr/src/dist
+
+EXPOSE 4895
+EXPOSE 5858
+CMD [&amp;quot;pm2-docker&amp;quot;, &amp;quot;process.yml&amp;quot;]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 1:-&lt;/em&gt; We are use Node image having version 8.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 4:-&lt;/em&gt; We globally install gulp and &lt;a href=&#34;https://github.com/Unitech/pm2&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;pm2&lt;/a&gt;. &lt;em&gt;PM2&lt;/em&gt; is a Production Runtime and Process Manager for Node.js applications with a built-in Load Balancer.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 7:-&lt;/em&gt; We create a new directory &lt;code&gt;/usr/src/&lt;/code&gt; inside our docker image.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 9:-&lt;/em&gt; We set &lt;code&gt;/usr/src/&lt;/code&gt; as our working directory inside the docker image.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 12:-&lt;/em&gt; We copy &lt;code&gt;package.json&lt;/code&gt; from root directory to our working directory.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 14:-&lt;/em&gt; We install node modules inside docker image.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 17:-&lt;/em&gt; We copy rest of our code from root directory to our working directory.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 20:-&lt;/em&gt; We build our project using gulp. We already installed gulp inside our docker image in line 4.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 22:-&lt;/em&gt; We set our working directory as &lt;code&gt;/usr/src/dist/&lt;/code&gt; as our JS code is compiled there.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 26:-&lt;/em&gt; We execute &lt;code&gt;pm2&lt;/code&gt; and using our &lt;code&gt;process.yml&lt;/code&gt; file that we created earlier to start the application inside docker image.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We need to build docker image using this &lt;strong&gt;Dockerfile.&lt;/strong&gt; Add a scripts folder inside root directory and create a &lt;code&gt;dockerCompose.sh&lt;/code&gt; file inside it. Copy the following code inside &lt;code&gt;scripts/dockerCompose.sh&lt;/code&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/usr/bin/env bash
+
+cd ..
+
+docker build -t knrt10/todoapi -f Dockerfile .
+
+docker-compose up -d
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Add this inside scripts in your package.json.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;&amp;quot;dockerStart&amp;quot;: &amp;quot;cd scripts &amp;amp;&amp;amp; chmod 777 dockerCompose.sh &amp;amp;&amp;amp; ./dockerCompose.sh &amp;amp;&amp;amp; cd ..&amp;quot;,
+&amp;quot;dockerStop&amp;quot;: &amp;quot;docker-compose down&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now that you know how to create an image with a Dockerfile, let’s create an application as a service and connect it to a database. Then we can run some setup commands and be on our way to creating rest of application.&lt;/p&gt;
+&lt;p&gt;The &lt;a href=&#34;https://docs.docker.com/compose/compose-file/compose-file-v2/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Docker Compose file&lt;/a&gt; will define and run the containers based on a configuration file. We are using &lt;a href=&#34;https://docs.docker.com/compose/compose-file/compose-file-v2/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;compose file version 2&lt;/a&gt; syntax, and you can read about it on Docker’s site.&lt;/p&gt;
+&lt;p&gt;An important concept to understand is that Docker Compose spans &lt;strong&gt;buildtime&lt;/strong&gt; and &lt;strong&gt;runtime&lt;/strong&gt;. Up until now, we have been building images using docker build ., which is &lt;strong&gt;buildtime&lt;/strong&gt;. This is when our containers are actually built. We can think of &lt;strong&gt;runtime&lt;/strong&gt; as what happens once our containers are built and being used.&lt;/p&gt;
+&lt;p&gt;Compose triggers &lt;strong&gt;buildtime&lt;/strong&gt;— instructing our images and containers to build — but it also populates data used at &lt;strong&gt;runtime&lt;/strong&gt;, such as env vars and volumes. This is important to be clear on. For instance, when we add things like volumes and command, they will override the same things that may have been set up via the Dockerfile at &lt;strong&gt;buildtime&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;Open your &lt;code&gt;docker-compose.yml&lt;/code&gt; file in your editor in root directory and copy/paste the following lines:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-yaml&#34;&gt;version: &#39;3&#39;
+services:
+  web:
+    build: .
+    command: npm run dev
+    volumes:
+      - .:/usr/src/
+      - /usr/src/node_modules
+    ports:
+      - &amp;quot;3000:3000&amp;quot;
+    depends_on:
+       - mongodb
+
+  mongodb:
+     image: mongo
+     ports:
+       - &amp;quot;27017:27017&amp;quot;
+     volumes:
+       - ./data:/data/db
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The first directive in the web service is to build the image based on our Dockerfile. This will recreate the image we used before, but it will now be named according to the project we are in, &lt;strong&gt;graphql-todo&lt;/strong&gt;. After that, we are giving the service some specific instructions on how it should operate:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 5:-&lt;/em&gt; Once the image is built, and the container is running, the npm start command will start the application.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 6:-&lt;/em&gt; &lt;code&gt;volumes:&lt;/code&gt; – This section will mount paths between the host and the container.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 7:-&lt;/em&gt; &lt;code&gt;.:/usr/src/&lt;/code&gt; – This will mount the root directory to our working directory in the container.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 8:-&lt;/em&gt; &lt;code&gt;/usr/src/node_modules&lt;/code&gt; – This will mount the node_modules directory to the host machine using the buildtime directory.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 9:-&lt;/em&gt; &lt;code&gt;ports:&lt;/code&gt; – This will publish the container’s port, in this case 3000, to the host as port 3000&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 11:-&lt;/em&gt; This depicts on what database image it depends on. We are using mongodb so we will specify mongodb&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 14:-&lt;/em&gt; It will build mongodb image.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 15:-&lt;/em&gt; Same as nodejs we specify version of mongodb image here.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 17:-&lt;/em&gt; &lt;code&gt;ports:&lt;/code&gt; – This will publish the container’s port, in this case &lt;code&gt;27017&lt;/code&gt;, to the host as port &lt;code&gt;27017&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Now before executing this script, check your docker is up and running. This command will execute our &lt;code&gt;scripts/dockerCompose.sh&lt;/code&gt; file. This file builds our docker image. Now run &lt;code&gt;npm run dockerStart&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;If everything goes right you will see this output. This means your docker image is created.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;Successfully built 2597b7c50ed4
+Successfully tagged graphql-todo_web:latest
+Creating graphql-todo_mongodb_1 ... done
+Creating graphql-todo_web_1     ... done
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You can get information about your running containers using the command given below.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;docker ps -a&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;You will see this kind of output&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2400/1*WLolSR6wA9F8EYS2mI9VQQ.png&#34; alt=&#34;Running docker containers.&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Copy the &lt;strong&gt;NAMES&lt;/strong&gt; for image &lt;code&gt;graphql-todo_web&lt;/code&gt; and run this&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;docker exec -it graphql-todo_web_1 -- /bin/bash&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;This will run bash inside the existing &lt;code&gt;graphql-todo_web_1&lt;/code&gt; container. The &lt;strong&gt;bash&lt;/strong&gt; process will have the same Linux namespaces as the main container process. This allows you to explore the container from within and see how Node.js and your app see the system when running inside the container. The &lt;strong&gt;-it&lt;/strong&gt; option is shorthand for two options:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;-i, which makes sure STDIN is kept open. You need this for entering commands into the shell.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;-t, which allocates a pseudo terminal (TTY).&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;exploring-container-from-within&#34;&gt;Exploring container from within&lt;/h3&gt;
+&lt;p&gt;Now you can run same commands as other users who have node installed. Find your test coverage by running the command given below.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;npm run coverage&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;You will see the following output.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2418/1*c5J2VJhbx5azzRIXzCEI_w.png&#34; alt=&#34;running tests inside container&#34;&gt;&lt;/p&gt;
+&lt;p&gt;You can stop docker process by running &lt;code&gt;npm run dockerStop&lt;/code&gt; after exiting from container.&lt;/p&gt;
+&lt;h2 id=&#34;setting-up-express-server&#34;&gt;Setting up Express server&lt;/h2&gt;
+&lt;p&gt;We will now setup our express server. Copy this code to your &lt;code&gt;package.json&lt;/code&gt; and run &lt;code&gt;npm i --quiet&lt;/code&gt;. Non npm users just copy.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;    &amp;quot;dependencies&amp;quot;: {
+      &amp;quot;@types/node&amp;quot;: &amp;quot;^10.12.15&amp;quot;,
+      &amp;quot;bcrypt-nodejs&amp;quot;: &amp;quot;0.0.3&amp;quot;,
+      &amp;quot;bluebird&amp;quot;: &amp;quot;^3.5.3&amp;quot;, 
+      &amp;quot;cors&amp;quot;: &amp;quot;^2.8.5&amp;quot;,
+      &amp;quot;express&amp;quot;: &amp;quot;^4.16.4&amp;quot;,
+      &amp;quot;helmet&amp;quot;: &amp;quot;^3.15.0&amp;quot;,
+      &amp;quot;jsonwebtoken&amp;quot;: &amp;quot;^8.4.0&amp;quot;,
+      &amp;quot;mongoose&amp;quot;: &amp;quot;^5.4.0&amp;quot;,
+      &amp;quot;winston&amp;quot;: &amp;quot;2.4.0&amp;quot;
+    }
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;bcrypt-nodejs&lt;/em&gt;:- Its for hashing user password using gensalt and securely storing into database&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;bluebird&lt;/em&gt;:- For handling promises.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;cors:-&lt;/em&gt; For handling Cross origin resource sharing and enabling it across all headers and domains.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;express:-&lt;/em&gt; For setting up server.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;helmet:-&lt;/em&gt; For securing our Express apps by setting various HTTP headers.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;jsonwebtoken:-&lt;/em&gt; For creating token that will authenticate the user.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;mongoose:-&lt;/em&gt; An &lt;em&gt;ORM(Object-Relational Mapping)&lt;/em&gt; to interact with mongoDB.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;winston:-&lt;/em&gt; A cool logger instead of console.log.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Now create a &lt;code&gt;server.ts&lt;/code&gt; inside src folder and copy this&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;&amp;quot;use strict&amp;quot;;
+/*
+  Import modules
+*/
+import bluebird = require(&amp;quot;bluebird&amp;quot;);
+import cors = require(&amp;quot;cors&amp;quot;);
+import express = require(&amp;quot;express&amp;quot;);
+import fs = require(&amp;quot;fs&amp;quot;);
+import mongoose = require(&amp;quot;mongoose&amp;quot;);
+import { Config } from &amp;quot;./shared&amp;quot;;
+global.Promise = bluebird;
+
+/**
+ * @exports TodoApp
+ * @class
+ * @method startServer
+ * @method initEnv
+ * @method initWinston
+ * @method initExpress
+ * @method initCORS
+ * @method initAppRoutes
+ * @method initServices
+ */
+export class TodoApp {
+  public infoString: string;
+  public port: any;
+  private pkg = require(&amp;quot;../package.json&amp;quot;); // information about package version
+  private winston: any = require(&amp;quot;winston&amp;quot;); // for logging
+  private app: any; // express server
+  constructor(private portGiven) {
+    if (Config.dbSettings.authEnabled) {
+      this.infoString = &amp;quot;mongodb://&amp;quot; + Config.dbSettings.username + &amp;quot;:&amp;quot; + Config.dbSettings.password + &amp;quot;@&amp;quot;
+        + Config.dbSettings.connectionString + &amp;quot;/&amp;quot; + Config.dbSettings.database;
+    } else if (Config.dbSettings.localDatabase) {
+      this.infoString = &amp;quot;mongodb://&amp;quot; + Config.dbSettings.connectionString + &amp;quot;/&amp;quot; + Config.dbSettings.database;
+    } else {
+      this.infoString = &amp;quot;mongodb://&amp;quot; + Config.dbSettings.dockerconnectionString + &amp;quot;/&amp;quot; + Config.dbSettings.database;
+    }
+    this.port = portGiven;
+  }
+
+  /**
+   * This starts express server
+   * @method startServer @public
+   */
+  public startServer() {
+    this.initEnv().then(() =&amp;gt; {
+      // logs/ Folder already
+      // Initilatizing the winston as per documentation
+      this.initWinston();
+
+      this.initServices().then(() =&amp;gt; {
+
+        // start the express server(s)
+        this.initExpress();
+
+        // all done
+        this.winston.info(this.pkg.name + &amp;quot; startup sequence completed&amp;quot;, {
+          version: this.pkg.version,
+        });
+      });
+    });
+  }
+
+  /**
+   * This setups the log folder and any other environment needs
+   * @method initEnv @private
+   * @returns {Promise&amp;lt;void&amp;gt;}
+   */
+  private initEnv(): Promise&amp;lt;void&amp;gt; {
+    return new Promise&amp;lt;void&amp;gt;((resolve) =&amp;gt; {
+      const logPath: string = Config.serviceSettings.logsDir;
+      fs.stat(logPath, (err) =&amp;gt; {
+        resolve();
+      });
+    });
+  }
+
+  /**
+   * This Initilatizes the winston
+   * @method initWinston @private
+   */
+  private initWinston() {
+    // winston is configured as a private variable to the main app.ts
+    // it can then be spread to child modules or routeModules. This way only one winston object needs to be setup
+    this.winston.remove(this.winston.transports.Console);
+    this.winston.add(this.winston.transports.Console, {
+      colorize: true,
+      prettyPrint: true,
+      timestamp: true,
+    });
+
+    this.winston.add(this.winston.transports.File, {
+      name: &amp;quot;error&amp;quot;,
+      level: &amp;quot;error&amp;quot;,
+      filename: &amp;quot;logs/error.log&amp;quot;,
+      maxsize: 10485760,
+      maxFiles: &amp;quot;10&amp;quot;,
+      timestamp: true,
+    });
+    this.winston.add(this.winston.transports.File, {
+      name: &amp;quot;warn&amp;quot;,
+      level: &amp;quot;warn&amp;quot;,
+      filename: &amp;quot;logs/warn.log&amp;quot;,
+      maxsize: 10485760,
+      maxFiles: &amp;quot;10&amp;quot;,
+      timestamp: true,
+    });
+    this.winston.add(this.winston.transports.File, {
+      name: &amp;quot;info&amp;quot;,
+      level: &amp;quot;info&amp;quot;,
+      filename: &amp;quot;logs/info.log&amp;quot;,
+      maxsize: 10485760,
+      maxFiles: &amp;quot;10&amp;quot;,
+      timestamp: true,
+    });
+    this.winston.add(this.winston.transports.File, {
+      name: &amp;quot;verbose&amp;quot;,
+      level: &amp;quot;verbose&amp;quot;,
+      filename: &amp;quot;logs/verbose.log&amp;quot;,
+      maxsize: 10485760,
+      maxFiles: &amp;quot;10&amp;quot;,
+      timestamp: true,
+    });
+
+    this.winston.info(&amp;quot;Winston has been init&amp;quot;);
+  }
+
+  /**
+   * This Initilatizes express server
+   * @method initExpress @private
+   */
+  private initExpress() {
+    // create express
+    this.app = express();
+    this.initCORS();
+
+    // add in any routes you might want
+    this.initAppRoutes();
+
+    // and start!
+    this.app.listen(this.port);
+    this.winston.info(&amp;quot;Express started on (http://localhost:&amp;quot; + this.port + &amp;quot;/)&amp;quot;);
+  }
+
+  /**
+   * This Initilatizes cors package
+   * @method initCORS @private
+   */
+  private initCORS() {
+    this.app.use(cors());
+  }
+
+  /**
+   * This Initilatizes routes for server
+   * @method initAppRoutes @private
+   */
+  private initAppRoutes() {
+    // We will setup our graphql route here
+  }
+
+  /**
+   * This Initilatizes services we want if expanding the application
+   * @method initServices @private
+   * @returns {Promise&amp;lt;boolean&amp;gt;}
+   */
+  private initServices(): Promise&amp;lt;boolean&amp;gt; {
+    return new Promise&amp;lt;boolean&amp;gt;((resolve, reject) =&amp;gt; {
+      // connect to mongodb
+      mongoose.connect(this.infoString, { useNewUrlParser: true }).then(() =&amp;gt; {
+        this.winston.info(&amp;quot;Mongo Connected!&amp;quot;);
+        resolve(true);
+      });
+    });
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Explanation:-&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 1–10:-&lt;/em&gt; We import necessary modules.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 11:-&lt;/em&gt; We specify that our promises globally will be handled by &lt;code&gt;bluebird&lt;/code&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 24-30:-&lt;/em&gt; We create a class TodoApp and initialize it’s constructor with a public data member &lt;em&gt;infostring&lt;/em&gt; and set it to according to what type of mongoDB we are using. If running locally &lt;code&gt;authEnabled&lt;/code&gt; is set to &lt;code&gt;false&lt;/code&gt; in &lt;code&gt;config.ts&lt;/code&gt; file. If running docker localDatabase inside &lt;code&gt;config.ts&lt;/code&gt; is set to &lt;code&gt;false&lt;/code&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 46 :-&lt;/em&gt; We create a public member function to start the express server.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 70–77:-&lt;/em&gt; Here we check whether we have a logs folder or not. We are returning a promise here that we handle in &lt;em&gt;line 47.&lt;/em&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 83–127:-&lt;/em&gt; We are using winston as our logger. So here we setup winston that’s all.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 133–144:-&lt;/em&gt; We create a member function to initialize our express application.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 150–152:-&lt;/em&gt; We are intializing cors module in this member function.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 158–160:-&lt;/em&gt; In this member function we will initialize our graphQL routes in our next article.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Line 167–175:-&lt;/em&gt; In this member function we are returing a promise that resolves to that a mongoDB is connected. We handle this promise on &lt;em&gt;line 52.&lt;/em&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Now create a shared folder inside &lt;code&gt;src/&lt;/code&gt; and create 2 files&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;config.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;index.ts&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Copy this to &lt;code&gt;src/shared/config.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;/**
+ * This file stores info for api, db, keys, logs
+ * @constant Config
+ */
+export const Config = {
+  apiSettings: {
+    host: process.env.API_HOST || &amp;quot;localhost&amp;quot;,
+  },
+  dbSettings: {
+    authEnabled: process.env.MONGO_AUTH || false,
+    localDatabase: true,
+    dockerconnectionString: process.env.MONGO_DB_HOST_DOCKER || &amp;quot;mongodb:27017&amp;quot;,
+    connectionString: process.env.MONGO_DB_HOST || &amp;quot;localhost:27017&amp;quot;,
+    database: process.env.DATABASE || &amp;quot;todoapp&amp;quot;,
+    password: process.env.MONGO_AUTH_PASSWORD,
+    username: process.env.MONGO_AUTH_USERNAME,
+  },
+  serviceSettings: {
+    logsDir: &amp;quot;logs/&amp;quot;,
+    env: process.env.environment || &amp;quot;local&amp;quot;,
+  },
+  secretKeys: {
+    jwtSecret: process.env.SECRET || &amp;quot;yes1234$ASDASD/SA&amp;quot;,
+    cryptoSecret: process.env.CRYPTO || &amp;quot;DASD2233312S;!`W21&amp;quot;,
+  },
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And this inside &lt;code&gt;src/shared/index.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;export * from &amp;quot;./config&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now copy this to your &lt;code&gt;src/app.ts&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;&amp;quot;use strict&amp;quot;;
+
+import { TodoApp } from &amp;quot;./server&amp;quot;;
+
+const server: TodoApp = new TodoApp(process.env.API_PORT || 3000);
+
+// starting the server*
+
+server.startServer();
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Also create a logs folder inside project root directory and create a &lt;code&gt;temp.txt&lt;/code&gt; file inside it. Copy the following code inside &lt;code&gt;logs/temp.txt&lt;/code&gt; :&lt;/p&gt;
+&lt;p&gt;This is just an example of log file&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{&amp;quot;level&amp;quot;:&amp;quot;info&amp;quot;,&amp;quot;message&amp;quot;:&amp;quot;Winston has been init&amp;quot;,&amp;quot;timestamp&amp;quot;:&amp;quot;2018-12-26T16:59:05.380Z&amp;quot;}
+{&amp;quot;level&amp;quot;:&amp;quot;info&amp;quot;,&amp;quot;message&amp;quot;:&amp;quot;Mongo Connected!&amp;quot;,&amp;quot;timestamp&amp;quot;:&amp;quot;2018-12-26T16:59:05.420Z&amp;quot;}
+{&amp;quot;level&amp;quot;:&amp;quot;info&amp;quot;,&amp;quot;message&amp;quot;:&amp;quot;Express started on ([http://localhost:3000/](http://localhost:3000/))&amp;quot;,&amp;quot;timestamp&amp;quot;:&amp;quot;2018-12-26T16:59:05.430Z&amp;quot;}
+{&amp;quot;version&amp;quot;:&amp;quot;1.0.0&amp;quot;,&amp;quot;level&amp;quot;:&amp;quot;info&amp;quot;,&amp;quot;message&amp;quot;:&amp;quot;graphql-todo startup sequence completed&amp;quot;,&amp;quot;timestamp&amp;quot;:&amp;quot;2018-12-26T16:59:05.432Z&amp;quot;}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To update our tests. Copy this to &lt;code&gt;src/test/user-test.spec.ts&lt;/code&gt; :&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-ts&#34;&gt;import chai = require(&amp;quot;chai&amp;quot;);
+import chaiAsPromised = require(&amp;quot;chai-as-promised&amp;quot;);
+import chaiHttp = require(&amp;quot;chai-http&amp;quot;);
+import { suite, test } from &amp;quot;mocha-typescript&amp;quot;;
+import sinon = require(&amp;quot;sinon&amp;quot;);
+import { TodoApp } from &amp;quot;../server&amp;quot;;
+import { Config } from &amp;quot;../shared&amp;quot;;
+
+// starting the server
+const server: TodoApp = new TodoApp(process.env.API_PORT || 3001);
+server.startServer();
+
+chai.use(chaiAsPromised);
+chai.use(chaiHttp);
+
+@suite(&amp;quot;User Test class&amp;quot;)
+class UserTests {
+
+  static after() {
+    process.exit(0);
+  }
+
+  @test(&amp;quot;Testing Local Connection - try connection for Local mongodb&amp;quot;)
+  public localDb(done) {
+    setTimeout(() =&amp;gt; {
+      Config.dbSettings.localDatabase = true;
+      const mock = sinon.mock(new TodoApp(process.env.API_PORT || 3001), &amp;quot;constructor&amp;quot;);
+      chai.expect(mock.object.infoString).to.deep.equal(&amp;quot;mongodb://&amp;quot; + Config.dbSettings.connectionString + &amp;quot;/&amp;quot; + Config.dbSettings.database);
+      done();
+    }, 100);
+  }
+
+  @test(&amp;quot;Testing Docker Connection - try connection for docker mongodb&amp;quot;)
+  public dockerDb(done) {
+    Config.dbSettings.localDatabase = false;
+    const mock = sinon.mock(new TodoApp(process.env.API_PORT || 3001), &amp;quot;constructor&amp;quot;);
+    chai.expect(mock.object.infoString).to.deep.equal(&amp;quot;mongodb://&amp;quot; + Config.dbSettings.dockerconnectionString + &amp;quot;/&amp;quot; + Config.dbSettings.database);
+    done();
+  }
+
+  @test(&amp;quot;Testing Online Connection - try connection for online mongodb&amp;quot;)
+  public OnlineDb(done) {
+    Config.dbSettings.authEnabled = true;
+    const mock = sinon.mock(new TodoApp(process.env.API_PORT || 3001), &amp;quot;constructor&amp;quot;);
+    chai.expect(mock.object.infoString).to.deep.equal(&amp;quot;mongodb://&amp;quot; + Config.dbSettings.username + &amp;quot;:&amp;quot; + Config.dbSettings.password + &amp;quot;@&amp;quot;
+        + Config.dbSettings.connectionString + &amp;quot;/&amp;quot; + Config.dbSettings.database);
+    done();
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;First start your mongoDB for your OS and then run &lt;code&gt;npm run build &amp;amp;&amp;amp; npm run coverage&lt;/code&gt;. You will see the output given below.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2444/1*dV1hBVwfY3MG_68-ReY3kQ.png&#34; alt=&#34;second set of tests with maintained 💯 code coverage. 👌&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;second set of tests with maintained 💯 code coverage. 👌&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;commiting-our-changes&#34;&gt;Commiting our changes&lt;/h2&gt;
+&lt;p&gt;We need to commit our changes, so that if some problem occur we can roll back to this commit. First create a &lt;code&gt;.gitignore&lt;/code&gt; file in your root directory and copy this&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-github&#34;&gt;*# Dependency directories*
+
+node_modules
+jspm_packages
+
+*# Optional npm cache directory
+*.npm
+
+*# Optional REPL history
+*.node_repl_history
+/bin/
+/tmp/
+/dist/
+/typings/
+/data/
+/logs/*.log
+/.nyc_output/
+/coverage/
+.DS_Store
+package-lock.json
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now copy and run the commands given below inside your git repository. Make sure you are in root folder.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;git add .
+git commit -m &amp;quot;Adding part1 changes&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;So far your project should look like this&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/2880/1*uoZAi6RoGSq3rvsIN6X96A.png&#34; alt=&#34;project progress&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;That is for this part. In this part you learnt following things:-&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;How to create express server.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How to setup docker using dockerfile and docker-compose.yml.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How to use Gulp and compile code from TS to JS.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How to write clean code.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How and write tests and have 💯 code coverage 😃.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;In next part you will start working with &lt;strong&gt;graphQL&lt;/strong&gt; and make API using that.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;did-you-find-this-page-helpful-consider-sharing-it-&#34;&gt;Did you find this page helpful? Consider sharing it 🙌&lt;/h3&gt;
+</description>
+    </item>
     
     <item>
       <title>ShellRacer</title>

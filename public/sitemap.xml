@@ -4,37 +4,62 @@
   
   <url>
     <loc>/authors/</loc>
-    <lastmod>2020-12-25T14:43:22+05:30</lastmod>
+    <lastmod>2020-12-25T16:09:15+05:30</lastmod>
   </url>
   
   <url>
     <loc>/categories/</loc>
-    <lastmod>2020-12-25T14:43:22+05:30</lastmod>
+    <lastmod>2020-12-25T16:09:15+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>/tag/docker/</loc>
+    <lastmod>2020-12-25T16:09:15+05:30</lastmod>
   </url>
   
   <url>
     <loc>/tag/js/</loc>
-    <lastmod>2020-12-25T14:43:22+05:30</lastmod>
+    <lastmod>2020-12-25T16:09:15+05:30</lastmod>
   </url>
   
   <url>
     <loc>/</loc>
-    <lastmod>2020-12-25T14:43:22+05:30</lastmod>
+    <lastmod>2020-12-25T16:09:15+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>/tag/mongodb/</loc>
+    <lastmod>2020-12-25T16:09:15+05:30</lastmod>
   </url>
   
   <url>
     <loc>/tag/node.js/</loc>
-    <lastmod>2020-12-25T14:43:22+05:30</lastmod>
+    <lastmod>2020-12-25T16:09:15+05:30</lastmod>
   </url>
   
   <url>
     <loc>/tag/opensource/</loc>
-    <lastmod>2020-12-25T14:43:22+05:30</lastmod>
+    <lastmod>2020-12-25T16:09:15+05:30</lastmod>
   </url>
   
   <url>
     <loc>/category/opensource/</loc>
-    <lastmod>2020-12-25T14:43:22+05:30</lastmod>
+    <lastmod>2020-12-25T16:09:15+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>/post/part-1-api-using-graphql/</loc>
+    <lastmod>2020-12-25T16:09:15+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>/tags/</loc>
+    <lastmod>2020-12-25T16:09:15+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>/tag/testing/</loc>
+    <lastmod>2020-12-25T16:09:15+05:30</lastmod>
   </url>
   
   <url>
@@ -43,13 +68,12 @@
   </url>
   
   <url>
-    <loc>/tags/</loc>
+    <loc>/tag/touchtyping/</loc>
     <lastmod>2020-12-25T14:43:22+05:30</lastmod>
   </url>
   
   <url>
-    <loc>/tag/touchtyping/</loc>
-    <lastmod>2020-12-25T14:43:22+05:30</lastmod>
+    <loc>/post/part-2-api-using-graphql/</loc>
   </url>
   
   <url>
