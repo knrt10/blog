@@ -44,6 +44,17 @@ bio: Certified Kubernetes Administrator (CKA) | Distributed Systems | Systems Pr
 #   icon_pack: ai
 #   link: files/cv.pdf
 
+social:
+- icon: github
+  icon_pack: fab
+  link: https://github.com/knrt10
+- icon: twitter
+  icon_pack: fab
+  link: https://twitter.com/knrt_10
+- icon: linkedin
+  icon_pack: fab
+  link: https://www.linkedin.com/in/knrt10/
+
 # Enter email to display Gravatar (if Gravatar enabled in Config)
 email: "tripathi.kautilya@gmail.com"
 ---
