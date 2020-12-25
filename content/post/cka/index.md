@@ -9,7 +9,6 @@ authors:
 tags:
 - kubernetes
 - cka
-- yaml
 - docker
 - security
 categories:

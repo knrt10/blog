@@ -54,6 +54,9 @@ social:
 - icon: linkedin
   icon_pack: fab
   link: https://www.linkedin.com/in/knrt10/
+- icon: cv
+  icon_pack: ai
+  link: https://knrt10.github.io/resume/resume.pdf
 
 # Enter email to display Gravatar (if Gravatar enabled in Config)
 email: "tripathi.kautilya@gmail.com"

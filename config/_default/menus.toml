@@ -7,3 +7,13 @@
   name = "Home"
   url = "/"
   weight = 10
+
+[[main]]
+  name = "About"
+  url = "author/kautilya-tripathi//"
+  weight = 20
+
+[[main]]
+  name = "Site source code"
+  url = "https://github.com/knrt10/blog"
+  weight = 30
