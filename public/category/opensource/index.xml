@@ -5,12 +5,140 @@
     <link>/category/opensource/</link>
       <atom:link href="/category/opensource/index.xml" rel="self" type="application/rss+xml" />
     <description>opensource</description>
-    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><copyright>knrt10 © 2020</copyright><lastBuildDate>Tue, 07 May 2019 00:00:00 +0000</lastBuildDate>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><copyright>knrt10 © 2020</copyright><lastBuildDate>Sat, 12 Oct 2019 00:00:00 +0000</lastBuildDate>
     <image>
       <url>/images/icon_hudaf87b0bbf6edf362efcd690a86c5023_625_512x512_fill_lanczos_center_2.png</url>
       <title>opensource</title>
       <link>/category/opensource/</link>
     </image>
+    
+    <item>
+      <title>Believe in yourself</title>
+      <link>/post/believe-in-yourself/</link>
+      <pubDate>Sat, 12 Oct 2019 00:00:00 +0000</pubDate>
+      <guid>/post/believe-in-yourself/</guid>
+      <description>&lt;p&gt;So here I am writing my second article after some good and experiencing summer. This article will mainly focus on my experience how I did 3 internships at same time.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.openmainframeproject.org/projects/mentorship-program&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Open Mainframe Project(OMP)&lt;/a&gt;:- 8 students were selected from all over the globe. This is really an aweome opportunity for college students, so if you don&amp;rsquo;t know about it try to apply in it next time. This is a remote internship.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://summerofcode.withgoogle.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Google Summer of Code(GSoC)&lt;/a&gt;:- This is quite known in Indian community, so I don&amp;rsquo;t think I need to explain it more. This is a remote internship&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://atlan.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Atlan&lt;/a&gt;:- This is a Delhi based startup, I was relocated to Delhi to work in their office.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;It was around Febuarary and I was just contributing to open source projects as ususal and along with that I was working remotely for Atlan. Then GSoC was announced and I started to focus on GSoC org too, in which I decided to apply. Now let&amp;rsquo;s skip this part and focus on main stuff. I came to know about &lt;strong&gt;OMP&lt;/strong&gt; from my best friend and colleague &lt;a href=&#34;https://www.linkedin.com/in/palash25/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Palash Nigam&lt;/a&gt;. I was not even going to apply because I thought that I would never get selected. Now let me tell me you something. &lt;code&gt;If you ever think about yourself like this, just stop&lt;/code&gt;. I was about to make the same mistake but I did not and I am reaping it&amp;rsquo;s rewards today. Always belive in yourself and always except the unexpected. So anyway after my friend gave me some lovely abusive words and to be precise he said (&lt;code&gt;&amp;quot;Tum chutiye ho, kar lo apply&amp;quot;&lt;/code&gt;). I read some of the OMP projects and applied in two of them. One thing I want to say to freshers out there is that even if you think that your chances are low to get in anything don&amp;rsquo;t ever give your less than 100%. Always give your best because you won&amp;rsquo;t regret that you didn&amp;rsquo;t give your best. Even if you fail, it won&amp;rsquo;t matter because you tried and that is most important.&lt;/p&gt;
+&lt;p&gt;Now at that time I was actively contributing to my GSoC organinzation. Not trying to showoff but I was the most active contributor. I made 44 PRs in 30 days. Out of which 6-7 PRs were new feature implementations. 19PRs were merged and other were under review. My state was like this, my final exams were going on but I was pushing my code changes 15 minutes ago before going to exam, to see the running CI test cases pass. So my gut was telling me that I would pass the GSoC but remember don&amp;rsquo;t ever be sure about anyting until you get the final result. Also one thing I want to say about GSoC selection is that:- &lt;code&gt;Yes, contribution matter but what matter most is your proposal&lt;/code&gt;. So students who will be applying next year, remember this. It doesn&amp;rsquo;t matter if you made most contributions because most organizations mainly focus on your proposal.&lt;/p&gt;
+&lt;p&gt;Now it was 1st April and OMP result were about to come out. I was not having any expectations and I was just walking down the road and listing to music when I got this email&lt;/p&gt;
+
+
+
+
+
+
+  
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-omp-selection&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;/post/believe-in-yourself/omp-selection_hu680ecee62fe56423d9d4ea955f70120d_138450_2000x2000_fit_q75_lanczos.jpg&#34; data-caption=&#34;omp selection&#34;&gt;
+
+
+  &lt;img data-src=&#34;/post/believe-in-yourself/omp-selection_hu680ecee62fe56423d9d4ea955f70120d_138450_2000x2000_fit_q75_lanczos.jpg&#34; class=&#34;lazyload&#34; alt=&#34;&#34; width=&#34;1177&#34; height=&#34;641&#34;&gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    omp selection
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;p&gt;Serioulsy I was brain fucked at that time. I shouted Yaaas!!! and ran towards my room. My heart was pounding and didn&amp;rsquo;t matter. My situation was just like below.&lt;/p&gt;
+&lt;div class=&#34;tenor-gif-embed&#34; data-postid=&#34;4373216&#34; data-share-method=&#34;host&#34; data-width=&#34;100%&#34; data-aspect-ratio=&#34;1.391304347826087&#34;&gt;&lt;a href=&#34;https://tenor.com/view/ru-gif-4373216&#34;&gt;Forrest Gump GIF&lt;/a&gt; from &lt;a href=&#34;https://tenor.com/search/ru-gifs&#34;&gt;Ru GIFs&lt;/a&gt;&lt;/div&gt;&lt;script type=&#34;text/javascript&#34; async src=&#34;https://tenor.com/embed.js&#34;&gt;&lt;/script&gt;
+&lt;p&gt;I was running to check on Palash that did he got in too or not. Unfortunately he did not get it. Now when my excitment was over it was time to decide which one to select. OMP or GSoC(if I got selected). At that time GSoC result were not out but I was analyzing the case what I should do when I get it. Now my current case was like this. I had OMP and I was going to Atlan in Delhi to work in their office. Atlan was important because I did not had any office exeperience and I wanted it. OMP was important because I wanted to get an experience to work with mainframe and also it had great perks(I will mention later). Now it was May and GSoC results were out and I was selected. Now I was really confused what to do. Palash t&lt;strong&gt;old me to do everything&lt;/strong&gt; but he said I will be fucked mentally. To be honest at that time I also thought that too. My whole family said &lt;strong&gt;not to do&lt;/strong&gt; all 3 and drop one of them.&lt;/p&gt;
+&lt;p&gt;I was really confused but I wanted to do all 3 and I wanted to test myself. So I took all 3. Before going further what I want to say to all is, you might face similar situtaion in life and it totally depend on you what you want to do, but &lt;strong&gt;you should trust yourself&lt;/strong&gt; and go forward with your gut. People will try to stop you but always trust your gut because &lt;code&gt;it&#39;s you who will be facing the challenges not them&lt;/code&gt;. You should have faith that you can overcome them, beacuse &lt;code&gt;when you do you will be a whole new person than before&lt;/code&gt;. You will be more confident, more agile and it will help you in your life.&lt;/p&gt;
+&lt;p&gt;Now it&amp;rsquo;s time for my real experience. I was reallocated in Delhi with Palash. We were both working in Atlan. Let me be clear I won&amp;rsquo;t be criticing anyone I am just sharing my experience. So Atlan is a good company but the problem is that they don&amp;rsquo;t provide you accomodation and good stipend as other startups provide. So our first 3 days went by searching for accomodation. We used to walk like 25k everyday in search for a place to live. I wanted a place close to office because I could not waste any time in travelling. I had to manage 3 things at the same time. So after 3 days staying in OYO. We finally got a place to stay, with the help of a bhaiya in office. It was near from office but let me stop you right there. &lt;strong&gt;Let&amp;rsquo;s first look at the situation how we lived for 2 months in summer in Delhi&lt;/strong&gt;.&lt;/p&gt;
+
+
+
+
+
+
+  
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-living-in-delhi&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;/post/believe-in-yourself/living-in-delhi_hu953013b9e02ee567bc5a1e66e85294be_668112_2000x2000_fit_q75_lanczos.jpg&#34; data-caption=&#34;living in delhi&#34;&gt;
+
+
+  &lt;img data-src=&#34;/post/believe-in-yourself/living-in-delhi_hu953013b9e02ee567bc5a1e66e85294be_668112_2000x2000_fit_q75_lanczos.jpg&#34; class=&#34;lazyload&#34; alt=&#34;&#34; width=&#34;546&#34; height=&#34;975&#34;&gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    living in delhi
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;p&gt;Now let me describe our actual situation how we lived here. &lt;em&gt;It was located on 4th floor(top) so heat was our best friend. There was no vantilation. If we opened fan, it was like just warming up to be killed. Now if we by mistake opened our cooler it was like we were saying please kill me now, don&amp;rsquo;t wait&lt;/em&gt;. &lt;strong&gt;Water that we got was just wow. I mean seriouly wow, like in summer who doesn&amp;rsquo;t want hot water. RIGHT???&lt;/strong&gt; We literally took steam bath for 2 months. Now let&amp;rsquo;s go to situation when we ate food. It was 50% of the time whenever we ordered our food at night the electricity went out. It was like always when we were eating food and our sweat was dropping in it. EWW, Right?? Well that was our situation. We were fortunate enough that Atlan provided food in office, so there was no problem with our breakfast and lunch.&lt;/p&gt;
+&lt;p&gt;This was my situation and I had to work on for GSoC and OMP. Now the best thing occured, I got fever. This time I thought it&amp;rsquo;s over let me quit from Atlan and go home. I was seriouly thinking about doing it. I did not had any strenght left at that time, I was disappointed with everything. Our living condition, work at office, my fever and I thought I couldn&amp;rsquo;t cope it. But my buddy Palash took care of me and I somehow got better from fever.&lt;/p&gt;
+&lt;p&gt;This was around end of May and my first evaluation of GSoC was about to come and I had not written much code. It was time I thought I should manage my time otherwise I will not be able to succeed. So I started to manage my time. Atlan has flexible working hours so we used to go to office around 11am and get back at 7pm. I used to take some break after office from 7-10pm and then focus on my GSoC work. I did most of my work at night and weekends. My OMP community bonding was also ended and coding period was also about to start. So there was another obstacle to handle. This was the reason we took only 2 months internship at Atlan from 13th May to 13th July. At that time my 2 evaluations of GSoC were about to be complete and OMP was going on.&lt;/p&gt;
+&lt;p&gt;Now, thing that I want to say from above is that, first of all don&amp;rsquo;t give up. I know I was lucky to have a good friend by my side but you should also believe in yourself. &lt;code&gt;Whenever you are thinking of quiting, always think of the reason why you started&lt;/code&gt;. This is only reason which kept me going. I wanted to prove myself that I can do it. I wanted to be confident in myself, so I pushed myself. Yes, I faced difficulties but I belived and overcame them. You should always be greatful for the opprotunities you are provided. Time management is one of the most important thing, if you want to do something. I learnt it the hard way.&lt;/p&gt;
+&lt;p&gt;Our Delhi internship was over, and I was greatful I was going back to college. Now only last phase of GSoC and last phase of OMP was left. Time management was same because I had college to attend. In the end I did and completed both the projects.&lt;/p&gt;
+&lt;p&gt;Now some of the perks I have facing because of OMP other than stipend is that, I will be presenting my project in &lt;a href=&#34;https://events19.linuxfoundation.org/events/open-source-summit-europe-2019/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Open Source Summit, Lyon, Europe&lt;/a&gt;. All expenses are paid.&lt;/p&gt;
+&lt;p&gt;I am also greatful to both my mentors(OMP and GSoC) because they belived in me. Sometimes I lagged but I always completed my task before time. It was a good expereince.&lt;/p&gt;
+&lt;p&gt;Now, I am going to &lt;a href=&#34;https://www.hackerrank.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Hackerrank&lt;/a&gt; this winter as a Software Developer Intern. So I will be in Banglore this winter. Thank you all for reading. Happy Coding.&lt;/p&gt;
+&lt;p&gt;Conclusion&lt;/p&gt;
+&lt;p&gt;I wrote this to help others. Feel free to share this, so that other can also benefit from it.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Follow me on &lt;a href=&#34;https://github.com/knrt10/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Github&lt;/a&gt; to check what I am currently working on.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://gist.github.com/knrt10/001f3a26e175fd0cbf9365763258de6e&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;My GSoC report&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/openmainframeproject-internship/DockerHub-Development-Stacks&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;OMP project&lt;/a&gt; and &lt;a href=&#34;https://github.com/knrt10/docker-hub-development-stacks-bot/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Bot&lt;/a&gt; repository.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;did-you-find-this-page-helpful-consider-sharing-it-&#34;&gt;Did you find this page helpful? Consider sharing it 🙌&lt;/h3&gt;
+</description>
+    </item>
     
     <item>
       <title>Hype for GSoC</title>
