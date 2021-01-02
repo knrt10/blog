@@ -8,7 +8,7 @@ active = true  # Activate this widget? true/false
 weight = 20  # Order that this section will appear.
 
 title = "Check out my new article"
-subtitle = "Shifted my blogs from all platforms"
+subtitle = "First article of 2021 focusing on security"
 
 [content]
   # Page type to display. E.g. post, talk, or publication.

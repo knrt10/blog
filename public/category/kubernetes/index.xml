@@ -5,12 +5,350 @@
     <link>/category/kubernetes/</link>
       <atom:link href="/category/kubernetes/index.xml" rel="self" type="application/rss+xml" />
     <description>kubernetes</description>
-    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><copyright>knrt10 © 2020. [Site source code](https://github.com/knrt10/blog)</copyright><lastBuildDate>Fri, 25 Dec 2020 00:00:00 +0000</lastBuildDate>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><copyright>knrt10 © 2021. [Site source code](https://github.com/knrt10/blog)</copyright><lastBuildDate>Sat, 02 Jan 2021 00:00:00 +0000</lastBuildDate>
     <image>
       <url>/images/icon_hudaf87b0bbf6edf362efcd690a86c5023_625_512x512_fill_lanczos_center_2.png</url>
       <title>kubernetes</title>
       <link>/category/kubernetes/</link>
     </image>
+    
+    <item>
+      <title>Learning about Pod Security Policy</title>
+      <link>/post/psp/</link>
+      <pubDate>Sat, 02 Jan 2021 00:00:00 +0000</pubDate>
+      <guid>/post/psp/</guid>
+      <description>&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;nav id=&#34;TableOfContents&#34;&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href=&#34;#what-we-will-learn&#34;&gt;What we will learn&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#what-is-pod-security-policy&#34;&gt;What is Pod Security Policy?&lt;/a&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;a href=&#34;#pod-security-policies-allow-you-to-control&#34;&gt;Pod Security Policies allow you to control:&lt;/a&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#enabling-pod-security-policies&#34;&gt;Enabling Pod Security Policies&lt;/a&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;a href=&#34;#policy-order&#34;&gt;Policy order&lt;/a&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#creating-custom-kubernetes-pod-security-policy&#34;&gt;Creating Custom Kubernetes Pod Security Policy&lt;/a&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;a href=&#34;#set-up&#34;&gt;Set up&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&#34;#create-a-policy&#34;&gt;Create a policy&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&#34;#grant-access-to-service-account&#34;&gt;Grant access to Service Account&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&#34;#create-a-pod-using-custom-psp&#34;&gt;Create a pod using custom psp&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&#34;#pro-tip&#34;&gt;Pro Tip&lt;/a&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#did-you-find-this-page-helpful-consider-sharing-it-&#34;&gt;Did you find this page helpful? Consider sharing it 🙌&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;
+&lt;h2 id=&#34;what-we-will-learn&#34;&gt;What we will learn&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;What is a PSP?&lt;/li&gt;
+&lt;li&gt;How to enable and use PSP in a cluster(minikube)&lt;/li&gt;
+&lt;li&gt;Create custom psp and use it in a pod&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;what-is-pod-security-policy&#34;&gt;What is Pod Security Policy?&lt;/h2&gt;
+&lt;p&gt;Pod Security Policies are cluster-wide resources that control security sensitive aspects of pod specification. PSP objects define a set of conditions that a pod must run with in order to be accepted into the system, as well as defaults for their related fields. PodSecurityPolicy is an optional admission controller that is enabled by default through the API, thus policies can be deployed without the PSP admission plugin enabled. This functions as a validating and mutating controller simultaneously.&lt;/p&gt;
+&lt;h3 id=&#34;pod-security-policies-allow-you-to-control&#34;&gt;Pod Security Policies allow you to control:&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;The running of privileged containers&lt;/li&gt;
+&lt;li&gt;Usage of host namespaces&lt;/li&gt;
+&lt;li&gt;Usage of host networking and ports&lt;/li&gt;
+&lt;li&gt;Usage of volume types&lt;/li&gt;
+&lt;li&gt;Usage of the host filesystem&lt;/li&gt;
+&lt;li&gt;A white list of Flexvolume drivers&lt;/li&gt;
+&lt;li&gt;The allocation of an FSGroup that owns the pod’s volumes&lt;/li&gt;
+&lt;li&gt;Requirments for use of a read only root file system&lt;/li&gt;
+&lt;li&gt;The user and group IDs of the container&lt;/li&gt;
+&lt;li&gt;Escalations of root privileges&lt;/li&gt;
+&lt;li&gt;Linux capabilities, SELinux context, AppArmor, seccomp, sysctl profile&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;If you’re interested in more details, check out the &lt;a href=&#34;https://kubernetes.io/docs/concepts/policy/pod-security-policy/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;official Kubernetes documentation&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;enabling-pod-security-policies&#34;&gt;Enabling Pod Security Policies&lt;/h2&gt;
+&lt;p&gt;For learning purpose we will be testing on our minikube cluster.&lt;/p&gt;
+&lt;p&gt;Enable &lt;code&gt;PodSecurityPolicy&lt;/code&gt; on your minikube cluster by appening &lt;code&gt;PodSecurityPolicy&lt;/code&gt; to the apiserver flag in minikube like this:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;--extra-config=apiserver.enable-admission-plugins=PodSecurityPolicy
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Important&lt;/strong&gt;: As per kubernetes documentation&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Pod security policy control is implemented as an optional (but recommended) admission controller. PodSecurityPolicies are enforced by enabling the admission controller, but doing so without authorizing any policies will prevent any pods from being created in the cluster. Since the pod security policy API (policy/v1beta1/podsecuritypolicy) is enabled independently of the admission controller, for existing clusters it is recommended that policies are added and authorized before enabling the admission controller.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;This means if your start your cluster without adding and authorizing policies it will fail to start any new pod. To see this in working, follow below steps:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;# Start your minikube cluster without any policies defined
+minikube start -p kautilya-cluster --kubernetes-version=v1.19.6 --feature-gates=EphemeralContainers=true --extra-config=apiserver.enable-admission-plugins=PodSecurityPolicy --addons=pod-security-policy
+
+# Try running a simple pod
+kubectl run nginx --image=nginx
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The above command will fail with the follwing output:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Error from server (Forbidden): pods &amp;quot;nginx&amp;quot; is forbidden: PodSecurityPolicy: no providers available to validate pod request&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;To fix the above problem you have to create a &lt;code&gt;psp.yaml&lt;/code&gt; file inside &lt;code&gt;~/.minikube/files/etc/kubernetes/addons&lt;/code&gt; folder. This will fix the issue when the cluster is being bootstraped. Copy the contents of file below and run the command:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-yaml&#34;&gt;mkdir -p ~/.minikube/files/etc/kubernetes/addons &amp;amp;&amp;amp; \
+cat &amp;lt;&amp;lt;EOF | tee ~/.minikube/files/etc/kubernetes/addons/psp.yaml | kubectl apply -f -
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: privileged
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: &amp;quot;*&amp;quot;
+  labels:
+    addonmanager.kubernetes.io/mode: EnsureExists
+spec:
+  privileged: true
+  allowPrivilegeEscalation: true
+  allowedCapabilities:
+  - &amp;quot;*&amp;quot;
+  volumes:
+  - &amp;quot;*&amp;quot;
+  hostNetwork: true
+  hostPorts:
+  - min: 0
+    max: 65535
+  hostIPC: true
+  hostPID: true
+  runAsUser:
+    rule: &#39;RunAsAny&#39;
+  seLinux:
+    rule: &#39;RunAsAny&#39;
+  supplementalGroups:
+    rule: &#39;RunAsAny&#39;
+  fsGroup:
+    rule: &#39;RunAsAny&#39;
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: restricted
+  labels:
+    addonmanager.kubernetes.io/mode: EnsureExists
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  volumes:
+    - &#39;configMap&#39;
+    - &#39;emptyDir&#39;
+    - &#39;projected&#39;
+    - &#39;secret&#39;
+    - &#39;downwardAPI&#39;
+    - &#39;persistentVolumeClaim&#39;
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    rule: &#39;MustRunAsNonRoot&#39;
+  seLinux:
+    rule: &#39;RunAsAny&#39;
+  supplementalGroups:
+    rule: &#39;MustRunAs&#39;
+    ranges:
+      # Forbid adding the root group.
+      - min: 1
+        max: 65535
+  fsGroup:
+    rule: &#39;MustRunAs&#39;
+    ranges:
+      # Forbid adding the root group.
+      - min: 1
+        max: 65535
+  readOnlyRootFilesystem: false
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: psp:privileged
+  labels:
+    addonmanager.kubernetes.io/mode: EnsureExists
+rules:
+- apiGroups: [&#39;policy&#39;]
+  resources: [&#39;podsecuritypolicies&#39;]
+  verbs:     [&#39;use&#39;]
+  resourceNames:
+  - privileged
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: psp:restricted
+  labels:
+    addonmanager.kubernetes.io/mode: EnsureExists
+rules:
+- apiGroups: [&#39;policy&#39;]
+  resources: [&#39;podsecuritypolicies&#39;]
+  verbs:     [&#39;use&#39;]
+  resourceNames:
+  - restricted
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: default:restricted
+  labels:
+    addonmanager.kubernetes.io/mode: EnsureExists
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: psp:restricted
+subjects:
+- kind: Group
+  name: system:authenticated
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: default:privileged
+  namespace: kube-system
+  labels:
+    addonmanager.kubernetes.io/mode: EnsureExists
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: psp:privileged
+subjects:
+- kind: Group
+  name: system:masters
+  apiGroup: rbac.authorization.k8s.io
+- kind: Group
+  name: system:nodes
+  apiGroup: rbac.authorization.k8s.io
+- kind: Group
+  name: system:serviceaccounts:kube-system
+  apiGroup: rbac.authorization.k8s.io
+EOF
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Let&amp;rsquo;s check the PSPs created:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;kubectl get psp
+NAME         PRIV    CAPS   SELINUX    RUNASUSER          FSGROUP     SUPGROUP    READONLYROOTFS   VOLUMES
+privileged   true    *      RunAsAny   RunAsAny           RunAsAny    RunAsAny    false            *
+restricted   false          RunAsAny   MustRunAsNonRoot   MustRunAs   MustRunAs   false            configMap,emptyDir,projected,secret,downwardAPI,persistentVolumeClaim
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now if you try to create a pod, it will be created successfully.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;kubectl run nginx --image=nginx
+pod/nginx created
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Note&lt;/strong&gt;: One thing you need to see which psp is assigned to the pod. Run the command below:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;kubectl describe po nginx | grep kubernetes.io/psp
+Annotations:  kubernetes.io/psp: privileged
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;As you can see that &lt;code&gt;privileged&lt;/code&gt; psp is assigned to it. Buy why privileged? That&amp;rsquo;s where policy order come in action.&lt;/p&gt;
+&lt;h3 id=&#34;policy-order&#34;&gt;Policy order&lt;/h3&gt;
+&lt;p&gt;As per kubernetes documentation, it says:&lt;/p&gt;
+&lt;p&gt;In addition to restricting pod creation and update, pod security policies can also be used to provide default values for many of the fields that it controls. When multiple policies are available, the pod security policy controller selects policies according to the following criteria:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;PodSecurityPolicies which allow the pod as-is, without changing defaults or mutating the pod, are preferred. The order of these non-mutating PodSecurityPolicies doesn&amp;rsquo;t matter.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;If the pod must be defaulted or mutated, the first PodSecurityPolicy (ordered by name) to allow the pod is selected.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Understanding this policy order is a black hole. More your experiment more you go into the black hole. So one thing you need to keep in mind is that you need to match the &lt;code&gt;po.spec&lt;/code&gt; and &lt;code&gt;psp.spec&lt;/code&gt; and if more than 2 policies match the criterion, the policy which comes first will be selected. To understand more, we will try to create a custom policy and run it in our pod.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;creating-custom-kubernetes-pod-security-policy&#34;&gt;Creating Custom Kubernetes Pod Security Policy&lt;/h2&gt;
+&lt;h3 id=&#34;set-up&#34;&gt;Set up&lt;/h3&gt;
+&lt;p&gt;Set up a namespace and a service account to act as for this example. We&amp;rsquo;ll use this service account which will have access to our custom psp and use this inside our pod.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;kubectl create namespace testing-psp
+kubectl create serviceaccount -n testing-psp testing-psp
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&#34;create-a-policy&#34;&gt;Create a policy&lt;/h3&gt;
+&lt;p&gt;Define the &lt;code&gt;minimal-psp-restricted&lt;/code&gt; PodSecurityPolicy object. This is a policy that simply prevents the creation of privileged pods, and run user as non root. The name of a PodSecurityPolicy object must be a valid &lt;a href=&#34;https://kubernetes.io/docs/concepts/overview/working-with-objects/names#dns-subdomain-names&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;DNS subdomain name&lt;/a&gt;. Run the below command:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-yaml&#34;&gt;cat &amp;lt;&amp;lt;EOF | kubectl apply -f -
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: minimal-psp-restricted
+spec:
+  privileged: false  # Don&#39;t allow privileged pods!
+  # The rest fills in some required fields.
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  runAsUser:
+    rule: MustRunAsNonRoot
+  fsGroup:
+    rule: RunAsAny
+  volumes:
+  - &#39;*&#39;
+EOF
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Check the psp created:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;kubectl get psp
+NAME                     PRIV    CAPS   SELINUX    RUNASUSER          FSGROUP     SUPGROUP    READONLYROOTFS   VOLUMES
+minimal-psp-restricted   false          RunAsAny   MustRunAsNonRoot   RunAsAny    RunAsAny    false            *
+privileged               true    *      RunAsAny   RunAsAny           RunAsAny    RunAsAny    false            *
+restricted               false          RunAsAny   MustRunAsNonRoot   MustRunAs   MustRunAs   false            configMap,emptyDir,projected,secret,downwardAPI,persistentVolumeClaim
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&#34;grant-access-to-service-account&#34;&gt;Grant access to Service Account&lt;/h3&gt;
+&lt;p&gt;Our Service Account &lt;code&gt;testing-psp&lt;/code&gt; should  have permission to use the new policy. To check whether it has access run the command:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;kubectl auth can-i use podsecuritypolicy/minimal-psp-restricted --as=&amp;quot;system:serviceaccount:testing-psp:testing-psp&amp;quot;
+no
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Create the rolebinding to grant service account &lt;code&gt;testing-psp&lt;/code&gt; the use &lt;code&gt;verb&lt;/code&gt; on the &lt;code&gt;minimal-psp-restricted&lt;/code&gt; policy:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;# Create a role
+kubectl create role psp:minimalunprivileged \
+    --verb=use \
+    --resource=podsecuritypolicy \
+    --resource-name=minimal-psp-restricted \
+    --namespace=testing-psp
+
+role.rbac.authorization.k8s.io/psp:minimalunprivileged created
+
+# Create a rolebinding
+kubectl create rolebinding psp:minimalunprivilegedbinding \
+    --role=psp:minimalunprivileged \
+    --serviceaccount=testing-psp:testing-psp \
+    --namespace=testing-psp
+
+rolebinding.rbac.authorization.k8s.io/psp:minimalunprivilegedbinding created
+
+# Check access to use psp
+kubectl auth can-i use podsecuritypolicy/minimal-psp-restricted --as=&amp;quot;system:serviceaccount:testing-psp:testing-psp&amp;quot;
+yes
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&#34;create-a-pod-using-custom-psp&#34;&gt;Create a pod using custom psp&lt;/h3&gt;
+&lt;p&gt;Let us create a pod using our service account. Run the file below:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-yaml&#34;&gt;cat &amp;lt;&amp;lt;EOF | kubectl apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: nginx
+  name: nginx
+spec:
+  serviceAccountName: testing-psp
+  containers:
+  - image: nginx
+    name: nginx
+    resources: {}
+    securityContext:
+      runAsNonRoot: true # container should run as roon root
+      runAsUser: 65534 # this means running as nobody
+      runAsGroup: 65534 # this means running as nogroup
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+EOF
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Once the pod is created, let us check which psp is assigned to it&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;kubectl describe po nginx | grep kubernetes.io/psp
+Annotations:  kubernetes.io/psp: minimal-psp-restricted
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;As you can see that it is using our custom psp &lt;code&gt;minimal-psp-restricted&lt;/code&gt; because &lt;code&gt;po.spec&lt;/code&gt; for our &lt;code&gt;nginx&lt;/code&gt; pod matches &lt;code&gt;psp.spec&lt;/code&gt; fields from &lt;code&gt;minimal-psp-restricted&lt;/code&gt; policy.&lt;/p&gt;
+&lt;p&gt;That’s it. You’ve created and applied your first Kubernetes pod security policy. With the help of this technique, you can greatly enhance the security of your Kubernetes deployments.&lt;/p&gt;
+&lt;h3 id=&#34;pro-tip&#34;&gt;Pro Tip&lt;/h3&gt;
+&lt;p&gt;When creating a custom policy, always start with privileged psp and then start changing fields for &lt;code&gt;po.spec&lt;/code&gt; according to changes in your policy. This can help you in debugging.&lt;/p&gt;
+&lt;h2 id=&#34;did-you-find-this-page-helpful-consider-sharing-it-&#34;&gt;Did you find this page helpful? Consider sharing it 🙌&lt;/h2&gt;
+</description>
+    </item>
     
     <item>
       <title>Passing CKA exam</title>
