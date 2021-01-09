@@ -4,17 +4,52 @@
   
   <url>
     <loc>/authors/</loc>
-    <lastmod>2021-01-02T13:43:00+05:30</lastmod>
+    <lastmod>2021-01-09T00:00:00+00:00</lastmod>
   </url>
   
   <url>
     <loc>/categories/</loc>
-    <lastmod>2021-01-02T13:43:00+05:30</lastmod>
+    <lastmod>2021-01-09T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/tag/golang/</loc>
+    <lastmod>2021-01-09T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/category/golang/</loc>
+    <lastmod>2021-01-09T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/tag/hard/</loc>
+    <lastmod>2021-01-09T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/tag/internals/</loc>
+    <lastmod>2021-01-09T00:00:00+00:00</lastmod>
   </url>
   
   <url>
     <loc>/</loc>
-    <lastmod>2021-01-02T13:43:00+05:30</lastmod>
+    <lastmod>2021-01-09T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/post/golang-maps-internals/</loc>
+    <lastmod>2021-01-09T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/tags/</loc>
+    <lastmod>2021-01-09T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/category/tech/</loc>
+    <lastmod>2021-01-09T00:00:00+00:00</lastmod>
   </url>
   
   <url>
@@ -34,16 +69,6 @@
   
   <url>
     <loc>/tag/security/</loc>
-    <lastmod>2021-01-02T13:43:00+05:30</lastmod>
-  </url>
-  
-  <url>
-    <loc>/tags/</loc>
-    <lastmod>2021-01-02T13:43:00+05:30</lastmod>
-  </url>
-  
-  <url>
-    <loc>/category/tech/</loc>
     <lastmod>2021-01-02T13:43:00+05:30</lastmod>
   </url>
   

@@ -8,7 +8,7 @@ active = true  # Activate this widget? true/false
 weight = 20  # Order that this section will appear.
 
 title = "Check out my new article"
-subtitle = "First article of 2021 focusing on security"
+subtitle = "Learn about map type in Go"
 
 [content]
   # Page type to display. E.g. post, talk, or publication.

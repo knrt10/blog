@@ -34,10 +34,10 @@
   
     
   
-  <meta name="description" content="Beginner&#39;s guide for learning PSP in a kubernetes cluster.">
+  <meta name="description" content="Understand how maps are stored in Golang internally and why are they an unsorted collections.">
 
   
-  <link rel="alternate" hreflang="en-us" href="/post/psp/">
+  <link rel="alternate" hreflang="en-us" href="/post/golang-maps-internals/">
 
   
 
@@ -257,7 +257,7 @@
   <link rel="icon" type="image/png" href="/images/icon_hudaf87b0bbf6edf362efcd690a86c5023_625_32x32_fill_lanczos_center_2.png">
   <link rel="apple-touch-icon" type="image/png" href="/images/icon_hudaf87b0bbf6edf362efcd690a86c5023_625_192x192_fill_lanczos_center_2.png">
 
-  <link rel="canonical" href="/post/psp/">
+  <link rel="canonical" href="/post/golang-maps-internals/">
 
   
   
@@ -276,15 +276,15 @@
   <meta property="twitter:creator" content="@knrt_10">
   
   <meta property="og:site_name" content="knrt10&#39;s Blog">
-  <meta property="og:url" content="/post/psp/">
-  <meta property="og:title" content="Learning about Pod Security Policy | knrt10&#39;s Blog">
-  <meta property="og:description" content="Beginner&#39;s guide for learning PSP in a kubernetes cluster."><meta property="og:image" content="/images/icon_hudaf87b0bbf6edf362efcd690a86c5023_625_512x512_fill_lanczos_center_2.png">
+  <meta property="og:url" content="/post/golang-maps-internals/">
+  <meta property="og:title" content="Macro view of Maps in Golang | knrt10&#39;s Blog">
+  <meta property="og:description" content="Understand how maps are stored in Golang internally and why are they an unsorted collections."><meta property="og:image" content="/images/icon_hudaf87b0bbf6edf362efcd690a86c5023_625_512x512_fill_lanczos_center_2.png">
   <meta property="twitter:image" content="/images/icon_hudaf87b0bbf6edf362efcd690a86c5023_625_512x512_fill_lanczos_center_2.png"><meta property="og:locale" content="en-us">
   
     
-      <meta property="article:published_time" content="2021-01-02T00:00:00&#43;00:00">
+      <meta property="article:published_time" content="2021-01-09T00:00:00&#43;00:00">
     
-    <meta property="article:modified_time" content="2021-01-02T13:43:00&#43;05:30">
+    <meta property="article:modified_time" content="2021-01-09T00:00:00&#43;00:00">
   
 
   
@@ -308,12 +308,12 @@
   "@type": "BlogPosting",
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": "/post/psp/"
+    "@id": "/post/golang-maps-internals/"
   },
-  "headline": "Learning about Pod Security Policy",
+  "headline": "Macro view of Maps in Golang",
   
-  "datePublished": "2021-01-02T00:00:00Z",
-  "dateModified": "2021-01-02T13:43:00+05:30",
+  "datePublished": "2021-01-09T00:00:00Z",
+  "dateModified": "2021-01-09T00:00:00Z",
   
   "author": {
     "@type": "Person",
@@ -328,7 +328,7 @@
       "url": "/images/icon_hudaf87b0bbf6edf362efcd690a86c5023_625_192x192_fill_lanczos_center_2.png"
     }
   },
-  "description": "Beginner's guide for learning PSP in a kubernetes cluster."
+  "description": "Understand how maps are stored in Golang internally and why are they an unsorted collections."
 }
 </script>
 
@@ -346,7 +346,7 @@
 
 
 
-  <title>Learning about Pod Security Policy | knrt10&#39;s Blog</title>
+  <title>Macro view of Maps in Golang | knrt10&#39;s Blog</title>
 
 </head>
 
@@ -617,7 +617,7 @@
   
   
 <div class="article-container pt-3">
-  <h1>Learning about Pod Security Policy</h1>
+  <h1>Macro view of Maps in Golang</h1>
 
   
 
@@ -645,10 +645,8 @@
     
     
       
-          Last updated on
-      
     
-    Jan 2, 2021
+    Jan 9, 2021
   </span>
   
 
@@ -657,7 +655,7 @@
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    7 min read
+    6 min read
   </span>
   
 
@@ -667,14 +665,14 @@
   
   
   <span class="middot-divider"></span>
-  <a href="/post/psp/#disqus_thread"></a>
+  <a href="/post/golang-maps-internals/#disqus_thread"></a>
   
 
   
   
   <span class="middot-divider"></span>
   <span class="article-categories">
-    <i class="fas fa-folder mr-1"></i><a href="/category/kubernetes/">kubernetes</a>, <a href="/category/tech/">tech</a></span>
+    <i class="fas fa-folder mr-1"></i><a href="/category/golang/">golang</a>, <a href="/category/tech/">tech</a></span>
   
 
 </div>
@@ -705,333 +703,170 @@
       <h2>Table of Contents</h2>
 <nav id="TableOfContents">
   <ul>
-    <li><a href="#what-we-will-learn">What we will learn</a></li>
-    <li><a href="#what-is-pod-security-policy">What is Pod Security Policy?</a>
-      <ul>
-        <li><a href="#pod-security-policies-allow-you-to-control">Pod Security Policies allow you to control:</a></li>
-      </ul>
-    </li>
-    <li><a href="#enabling-pod-security-policies">Enabling Pod Security Policies</a>
-      <ul>
-        <li><a href="#policy-order">Policy order</a></li>
-      </ul>
-    </li>
-    <li><a href="#creating-custom-kubernetes-pod-security-policy">Creating Custom Kubernetes Pod Security Policy</a>
-      <ul>
-        <li><a href="#set-up">Set up</a></li>
-        <li><a href="#create-a-policy">Create a policy</a></li>
-        <li><a href="#grant-access-to-service-account">Grant access to Service Account</a></li>
-        <li><a href="#create-a-pod-using-custom-psp">Create a pod using custom psp</a></li>
-        <li><a href="#pro-tip">Pro Tip</a></li>
-      </ul>
-    </li>
-    <li><a href="#did-you-find-this-page-helpful-consider-sharing-it-">Did you find this page helpful? Consider sharing it 🙌</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#what-are-maps-in-golang">What are maps in Golang?</a></li>
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#creating-and-using-maps">Creating and Using Maps</a></li>
+    <li><a href="#macro-view">Macro view</a></li>
+    <li><a href="#how-maps-grow">How Maps Grow</a></li>
+    <li><a href="#conclusion">Conclusion</a></li>
   </ul>
 </nav>
-<h2 id="what-we-will-learn">What we will learn</h2>
-<ul>
-<li>What is a PSP?</li>
-<li>How to enable and use PSP in a cluster(minikube)</li>
-<li>Create custom psp and use it in a pod</li>
-</ul>
-<h2 id="what-is-pod-security-policy">What is Pod Security Policy?</h2>
-<p>Pod Security Policies are cluster-wide resources that control security sensitive aspects of pod specification. PSP objects define a set of conditions that a pod must run with in order to be accepted into the system, as well as defaults for their related fields. PodSecurityPolicy is an optional admission controller that is enabled by default through the API, thus policies can be deployed without the PSP admission plugin enabled. This functions as a validating and mutating controller simultaneously.</p>
-<h3 id="pod-security-policies-allow-you-to-control">Pod Security Policies allow you to control:</h3>
-<ul>
-<li>The running of privileged containers</li>
-<li>Usage of host namespaces</li>
-<li>Usage of host networking and ports</li>
-<li>Usage of volume types</li>
-<li>Usage of the host filesystem</li>
-<li>A white list of Flexvolume drivers</li>
-<li>The allocation of an FSGroup that owns the pod’s volumes</li>
-<li>Requirments for use of a read only root file system</li>
-<li>The user and group IDs of the container</li>
-<li>Escalations of root privileges</li>
-<li>Linux capabilities, SELinux context, AppArmor, seccomp, sysctl profile</li>
-</ul>
-<p>If you’re interested in more details, check out the <a href="https://kubernetes.io/docs/concepts/policy/pod-security-policy/" target="_blank" rel="noopener">official Kubernetes documentation</a>.</p>
-<h2 id="enabling-pod-security-policies">Enabling Pod Security Policies</h2>
-<p>For learning purpose we will be testing on our minikube cluster.</p>
-<p>Enable <code>PodSecurityPolicy</code> on your minikube cluster by appening <code>PodSecurityPolicy</code> to the apiserver flag in minikube like this:</p>
-<pre><code class="language-bash">--extra-config=apiserver.enable-admission-plugins=PodSecurityPolicy
-</code></pre>
-<p><strong>Important</strong>: As per kubernetes documentation</p>
-<blockquote>
-<p>Pod security policy control is implemented as an optional (but recommended) admission controller. PodSecurityPolicies are enforced by enabling the admission controller, but doing so without authorizing any policies will prevent any pods from being created in the cluster. Since the pod security policy API (policy/v1beta1/podsecuritypolicy) is enabled independently of the admission controller, for existing clusters it is recommended that policies are added and authorized before enabling the admission controller.</p>
-</blockquote>
-<p>This means if your start your cluster without adding and authorizing policies it will fail to start any new pod. To see this in working, follow below steps:</p>
-<pre><code class="language-bash"># Start your minikube cluster without any policies defined
-minikube start -p kautilya-cluster --kubernetes-version=v1.19.6 --feature-gates=EphemeralContainers=true --extra-config=apiserver.enable-admission-plugins=PodSecurityPolicy --addons=pod-security-policy
+<h2 id="about">About</h2>
+<p>This article will focus on explaining macro view of maps in Go and why are they an unsorted collections. You should have atleat a basic knowledge of what are maps in Golang. If you don&rsquo;t know don&rsquo;t worry I will try to explain it as clearly as I can.</p>
+<h2 id="what-are-maps-in-golang">What are maps in Golang?</h2>
+<p>A map is a builtin type in Go that is used to store <em>key-value</em> pairs. Let&rsquo;s take the example of a startup with a few employees. For simplicity, let&rsquo;s assume that the first name of all these employees is unique. We are looking for a data structure to store the salary of each employee. A map will be a perfect fit for this use case. The name of the employee can be the key and the salary can be the value. Maps are similar to dictionaries in other languages such as Python.</p>
+<p>To learn more about map, refer to <a href="https://tour.golang.org/moretypes/19" target="_blank" rel="noopener">golang website</a>.</p>
+<h2 id="introduction">Introduction</h2>
+<p>There are lots of posts that talk about the internals of slices, but when it comes to maps, we are left in the dark. I was wondering why and then I found <a href="https://golang.org/src/runtime/map.go" target="_blank" rel="noopener">the code</a> for maps and it all made sense. At least for me, this code is complicated. That being said, I think we can create a macro view of how maps are structured and grow. This should explain why they are unordered, efficient and fast.</p>
+<h2 id="creating-and-using-maps">Creating and Using Maps</h2>
+<p>Let’s look at how we can use a map literal to create a map and store a few values:</p>
+<pre><code class="language-go">// Create an empty map with a key and value of type string.
+employee := map[string]string{}
 
-# Try running a simple pod
-kubectl run nginx --image=nginx
+// Add a few keys/value pairs to the map.
+employee[&quot;name&quot;] = &quot;knrt10&quot;
+employee[&quot;age&quot;]  = &quot;23&quot;
+employee[&quot;tag&quot;]  = &quot;Cloud Infrastructure Engineer&quot;
+employee[&quot;location&quot;] = &quot;India&quot;
 </code></pre>
-<p>The above command will fail with the follwing output:</p>
-<p><code>Error from server (Forbidden): pods &quot;nginx&quot; is forbidden: PodSecurityPolicy: no providers available to validate pod request</code></p>
-<p>To fix the above problem you have to create a <code>psp.yaml</code> file inside <code>~/.minikube/files/etc/kubernetes/addons</code> folder. This will fix the issue when the cluster is being bootstraped. Copy the contents of file below and run the command:</p>
-<pre><code class="language-yaml">mkdir -p ~/.minikube/files/etc/kubernetes/addons &amp;&amp; \
-cat &lt;&lt;EOF | tee ~/.minikube/files/etc/kubernetes/addons/psp.yaml | kubectl apply -f -
----
-apiVersion: policy/v1beta1
-kind: PodSecurityPolicy
-metadata:
-  name: privileged
-  annotations:
-    seccomp.security.alpha.kubernetes.io/allowedProfileNames: &quot;*&quot;
-  labels:
-    addonmanager.kubernetes.io/mode: EnsureExists
-spec:
-  privileged: true
-  allowPrivilegeEscalation: true
-  allowedCapabilities:
-  - &quot;*&quot;
-  volumes:
-  - &quot;*&quot;
-  hostNetwork: true
-  hostPorts:
-  - min: 0
-    max: 65535
-  hostIPC: true
-  hostPID: true
-  runAsUser:
-    rule: 'RunAsAny'
-  seLinux:
-    rule: 'RunAsAny'
-  supplementalGroups:
-    rule: 'RunAsAny'
-  fsGroup:
-    rule: 'RunAsAny'
----
-apiVersion: policy/v1beta1
-kind: PodSecurityPolicy
-metadata:
-  name: restricted
-  labels:
-    addonmanager.kubernetes.io/mode: EnsureExists
-spec:
-  privileged: false
-  allowPrivilegeEscalation: false
-  requiredDropCapabilities:
-    - ALL
-  volumes:
-    - 'configMap'
-    - 'emptyDir'
-    - 'projected'
-    - 'secret'
-    - 'downwardAPI'
-    - 'persistentVolumeClaim'
-  hostNetwork: false
-  hostIPC: false
-  hostPID: false
-  runAsUser:
-    rule: 'MustRunAsNonRoot'
-  seLinux:
-    rule: 'RunAsAny'
-  supplementalGroups:
-    rule: 'MustRunAs'
-    ranges:
-      # Forbid adding the root group.
-      - min: 1
-        max: 65535
-  fsGroup:
-    rule: 'MustRunAs'
-    ranges:
-      # Forbid adding the root group.
-      - min: 1
-        max: 65535
-  readOnlyRootFilesystem: false
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: psp:privileged
-  labels:
-    addonmanager.kubernetes.io/mode: EnsureExists
-rules:
-- apiGroups: ['policy']
-  resources: ['podsecuritypolicies']
-  verbs:     ['use']
-  resourceNames:
-  - privileged
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: psp:restricted
-  labels:
-    addonmanager.kubernetes.io/mode: EnsureExists
-rules:
-- apiGroups: ['policy']
-  resources: ['podsecuritypolicies']
-  verbs:     ['use']
-  resourceNames:
-  - restricted
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: default:restricted
-  labels:
-    addonmanager.kubernetes.io/mode: EnsureExists
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: psp:restricted
-subjects:
-- kind: Group
-  name: system:authenticated
-  apiGroup: rbac.authorization.k8s.io
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: default:privileged
-  namespace: kube-system
-  labels:
-    addonmanager.kubernetes.io/mode: EnsureExists
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: psp:privileged
-subjects:
-- kind: Group
-  name: system:masters
-  apiGroup: rbac.authorization.k8s.io
-- kind: Group
-  name: system:nodes
-  apiGroup: rbac.authorization.k8s.io
-- kind: Group
-  name: system:serviceaccounts:kube-system
-  apiGroup: rbac.authorization.k8s.io
-EOF
+<p>When we add values to a map, we always specify a key that is associated with the value. This key is used to find this value again without the need to iterate through the entire collection:</p>
+<pre><code class="language-go">fmt.Printf(&quot;Value: %s&quot;, employee[&quot;name&quot;])
 </code></pre>
-<p>Let&rsquo;s check the PSPs created:</p>
-<pre><code class="language-bash">kubectl get psp
-NAME         PRIV    CAPS   SELINUX    RUNASUSER          FSGROUP     SUPGROUP    READONLYROOTFS   VOLUMES
-privileged   true    *      RunAsAny   RunAsAny           RunAsAny    RunAsAny    false            *
-restricted   false          RunAsAny   MustRunAsNonRoot   MustRunAs   MustRunAs   false            configMap,emptyDir,projected,secret,downwardAPI,persistentVolumeClaim
+<p>If we do iterate through the map, we will not necessarily get the keys back in the same order. In fact, every time you run the code, the order could change:</p>
+<pre><code class="language-go">employee := map[string]string{}
 
-</code></pre>
-<p>Now if you try to create a pod, it will be created successfully.</p>
-<pre><code class="language-bash">kubectl run nginx --image=nginx
-pod/nginx created
-</code></pre>
-<p><strong>Note</strong>: One thing you need to see which psp is assigned to the pod. Run the command below:</p>
-<pre><code class="language-bash">kubectl describe po nginx | grep kubernetes.io/psp
-Annotations:  kubernetes.io/psp: privileged
-</code></pre>
-<p>As you can see that <code>privileged</code> psp is assigned to it. Buy why privileged? That&rsquo;s where policy order come in action.</p>
-<h3 id="policy-order">Policy order</h3>
-<p>As per kubernetes documentation, it says:</p>
-<p>In addition to restricting pod creation and update, pod security policies can also be used to provide default values for many of the fields that it controls. When multiple policies are available, the pod security policy controller selects policies according to the following criteria:</p>
-<ol>
-<li>
-<p>PodSecurityPolicies which allow the pod as-is, without changing defaults or mutating the pod, are preferred. The order of these non-mutating PodSecurityPolicies doesn&rsquo;t matter.</p>
-</li>
-<li>
-<p>If the pod must be defaulted or mutated, the first PodSecurityPolicy (ordered by name) to allow the pod is selected.</p>
-</li>
-</ol>
-<blockquote>
-<p>Understanding this policy order is a black hole. More your experiment more you go into the black hole. So one thing you need to keep in mind is that you need to match the <code>po.spec</code> and <code>psp.spec</code> and if more than 2 policies match the criterion, the policy which comes first will be selected. To understand more, we will try to create a custom policy and run it in our pod.</p>
-</blockquote>
-<h2 id="creating-custom-kubernetes-pod-security-policy">Creating Custom Kubernetes Pod Security Policy</h2>
-<h3 id="set-up">Set up</h3>
-<p>Set up a namespace and a service account to act as for this example. We&rsquo;ll use this service account which will have access to our custom psp and use this inside our pod.</p>
-<pre><code class="language-bash">kubectl create namespace testing-psp
-kubectl create serviceaccount -n testing-psp testing-psp
-</code></pre>
-<h3 id="create-a-policy">Create a policy</h3>
-<p>Define the <code>minimal-psp-restricted</code> PodSecurityPolicy object. This is a policy that simply prevents the creation of privileged pods, and run user as non root. The name of a PodSecurityPolicy object must be a valid <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/names#dns-subdomain-names" target="_blank" rel="noopener">DNS subdomain name</a>. Run the below command:</p>
-<pre><code class="language-yaml">cat &lt;&lt;EOF | kubectl apply -f -
-apiVersion: policy/v1beta1
-kind: PodSecurityPolicy
-metadata:
-  name: minimal-psp-restricted
-spec:
-  privileged: false  # Don't allow privileged pods!
-  # The rest fills in some required fields.
-  seLinux:
-    rule: RunAsAny
-  supplementalGroups:
-    rule: RunAsAny
-  runAsUser:
-    rule: MustRunAsNonRoot
-  fsGroup:
-    rule: RunAsAny
-  volumes:
-  - '*'
-EOF
-</code></pre>
-<p>Check the psp created:</p>
-<pre><code class="language-bash">kubectl get psp
-NAME                     PRIV    CAPS   SELINUX    RUNASUSER          FSGROUP     SUPGROUP    READONLYROOTFS   VOLUMES
-minimal-psp-restricted   false          RunAsAny   MustRunAsNonRoot   RunAsAny    RunAsAny    false            *
-privileged               true    *      RunAsAny   RunAsAny           RunAsAny    RunAsAny    false            *
-restricted               false          RunAsAny   MustRunAsNonRoot   MustRunAs   MustRunAs   false            configMap,emptyDir,projected,secret,downwardAPI,persistentVolumeClaim
+employee[&quot;name&quot;] = &quot;knrt10&quot;
+employee[&quot;age&quot;]  = &quot;23&quot;
+employee[&quot;tag&quot;]  = &quot;Cloud Infrastructure Engineer&quot;
+employee[&quot;location&quot;] = &quot;India&quot;
 
-</code></pre>
-<h3 id="grant-access-to-service-account">Grant access to Service Account</h3>
-<p>Our Service Account <code>testing-psp</code> should  have permission to use the new policy. To check whether it has access run the command:</p>
-<pre><code class="language-bash">kubectl auth can-i use podsecuritypolicy/minimal-psp-restricted --as=&quot;system:serviceaccount:testing-psp:testing-psp&quot;
-no
-</code></pre>
-<p>Create the rolebinding to grant service account <code>testing-psp</code> the use <code>verb</code> on the <code>minimal-psp-restricted</code> policy:</p>
-<pre><code class="language-bash"># Create a role
-kubectl create role psp:minimalunprivileged \
-    --verb=use \
-    --resource=podsecuritypolicy \
-    --resource-name=minimal-psp-restricted \
-    --namespace=testing-psp
+for key, value := range employee {
+    fmt.Printf(&quot;%s:%s, &quot;, key, value)
+}
 
-role.rbac.authorization.k8s.io/psp:minimalunprivileged created
-
-# Create a rolebinding
-kubectl create rolebinding psp:minimalunprivilegedbinding \
-    --role=psp:minimalunprivileged \
-    --serviceaccount=testing-psp:testing-psp \
-    --namespace=testing-psp
-
-rolebinding.rbac.authorization.k8s.io/psp:minimalunprivilegedbinding created
-
-# Check access to use psp
-kubectl auth can-i use podsecuritypolicy/minimal-psp-restricted --as=&quot;system:serviceaccount:testing-psp:testing-psp&quot;
-yes
+# Output:
+location:India, name:knrt10, age:23, tag:Cloud Infrastructure Engineer,
+name:knrt10, age:23, tag:Cloud Infrastructure Engineer, location:India,
 </code></pre>
-<h3 id="create-a-pod-using-custom-psp">Create a pod using custom psp</h3>
-<p>Let us create a pod using our service account. Run the file below:</p>
-<pre><code class="language-yaml">cat &lt;&lt;EOF | kubectl apply -f -
-apiVersion: v1
-kind: Pod
-metadata:
-  labels:
-    run: nginx
-  name: nginx
-spec:
-  serviceAccountName: testing-psp
-  containers:
-  - image: nginx
-    name: nginx
-    resources: {}
-    securityContext:
-      runAsNonRoot: true # container should run as roon root
-      runAsUser: 65534 # this means running as nobody
-      runAsGroup: 65534 # this means running as nogroup
-  dnsPolicy: ClusterFirst
-  restartPolicy: Always
-status: {}
-EOF
+<p>Now that we know how to create, set key/value pairs and iterate over a map, we can peek under the hood.</p>
+<h2 id="macro-view">Macro view</h2>
+<p>Maps in Go are implemented as a hash table. If you need to learn what a hash table is, there are lots of articles and posts about the subject. You can learn about <a href="http://en.wikipedia.org/wiki/Hash_table" target="_blank" rel="noopener">Hash table</a> on Wikipedia.</p>
+<p>A map is just a hash table. The data is arranged into an array of buckets. The number of buckets is always equal to a power of 2. Each bucket contains up to 8 key/value pairs.</p>
+<p>When a map operation is performed, such as <code>(employee[&quot;name&quot;] = &quot;knrt10&quot;)</code>, a hash key is generated against the key that is specified. In this case the string &ldquo;name&rdquo; is used to generate the hash key. The <strong>low order bits</strong> (LOB) of the generated hash key is used to select a bucket. If more than 8 keys hash to a bucket, it chains on extra buckets.</p>
+<p>The low-order bits of the hash are used to select a bucket. Each bucket contains a few high-order bits of each hash to distinguish the entries within a single bucket.</p>
+
+
+
+
+
+
+  
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+<figure id="figure-buckets-in-map">
+
+
+  <a data-fancybox="" href="/post/golang-maps-internals/buckets_hufa055bc4c040712f6c8cb70209fffa61_37298_2000x2000_fit_q75_lanczos.jpg" data-caption="Buckets in Map">
+
+
+  <img data-src="/post/golang-maps-internals/buckets_hufa055bc4c040712f6c8cb70209fffa61_37298_2000x2000_fit_q75_lanczos.jpg" class="lazyload" alt="" width="707" height="305">
+</a>
+
+
+  
+  
+  <figcaption>
+    Buckets in Map
+  </figcaption>
+
+
+</figure>
+
+<p>Once a bucket is selected, the <em>key/value</em> pair needs to be stored, removed or looked up, depending on the type of operation. If we look inside any bucket, we will find two data structures. First, there is an array with the top 8 high order bits (HOB) from the same hash key that was used to select the bucket. This array distinguishes each individual key/value pair stored in the respective bucket. Second, there is an array of bytes that store the key/value pairs. The byte array packs all the keys and then all the values together for the respective bucket.</p>
+<p>When we are iterating through a map, the iterator walks through the array of buckets and then return the key/value pairs in the order they are laid out in the byte array. <strong><code>This is why maps are unsorted collections</code></strong>. The hash keys determines the walk order of the map because they determine which buckets each key/value pair will end up in.</p>
+<p>The 1 byte value in this map would result in 7 extra bytes of padding per key/value pair. By packing the key/value pairs as key/key/value/value, the padding only has to be appended to the end of the byte array and not in between. Eliminating the padding bytes saves the bucket and the map a good amount of memory. I will explain about alignment boundaries is some other article</p>
+<p>A bucket is configured to store only 8 key/value pairs. If a ninth key needs to be added to a bucket that is full, an overflow bucket is created and reference from inside the respective bucket.</p>
+
+
+
+
+
+
+  
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+<figure id="figure-buckets-resizing-map">
+
+
+  <a data-fancybox="" href="/post/golang-maps-internals/bucket-resizing_hu78d8e425af6231959673fbd9e26825c8_59937_2000x2000_fit_q75_lanczos.jpg" data-caption="Buckets Resizing Map">
+
+
+  <img data-src="/post/golang-maps-internals/bucket-resizing_hu78d8e425af6231959673fbd9e26825c8_59937_2000x2000_fit_q75_lanczos.jpg" class="lazyload" alt="" width="694" height="410">
+</a>
+
+
+  
+  
+  <figcaption>
+    Buckets Resizing Map
+  </figcaption>
+
+
+</figure>
+
+<h2 id="how-maps-grow">How Maps Grow</h2>
+<p>As we continue to add or remove key/value pairs from the map, the efficiency of the map lookups begin to <strong>deteriorate</strong>. The load threshold values that determine when to grow the hash table are based on these four factors:</p>
+<pre><code class="language-json">% overflow  : Percentage of buckets which have an overflow bucket
+bytes/entry : Number of overhead bytes used per key/value pair
+hitprobe    : Number of entries that need to be checked when looking up a present key
+missprobe   : Number of entries that need to be checked when looking up an absent key
 </code></pre>
-<p>Once the pod is created, let us check which psp is assigned to it</p>
-<pre><code class="language-bash">kubectl describe po nginx | grep kubernetes.io/psp
-Annotations:  kubernetes.io/psp: minimal-psp-restricted
+<p>Some stats for different loads for (64-bit, 8 byte keys and elems)</p>
+<pre><code class="language-bash">//  loadFactor    %overflow  bytes/entry     hitprobe    missprobe
+
+//        4.00         2.13        20.77         3.00         4.00
+//        4.50         4.05        17.30         3.25         4.50
+//        5.00         6.85        14.77         3.50         5.00
+//        5.50        10.55        12.94         3.75         5.50
+//        6.00        15.27        11.67         4.00         6.00
+//        6.50        20.90        10.79         4.25         6.50
+//        7.00        27.14        10.15         4.50         7.00
+//        7.50        34.03         9.73         4.75         7.50
+//        8.00        41.10         9.40         5.00         8.00
 </code></pre>
-<p>As you can see that it is using our custom psp <code>minimal-psp-restricted</code> because <code>po.spec</code> for our <code>nginx</code> pod matches <code>psp.spec</code> fields from <code>minimal-psp-restricted</code> policy.</p>
-<p>That’s it. You’ve created and applied your first Kubernetes pod security policy. With the help of this technique, you can greatly enhance the security of your Kubernetes deployments.</p>
-<h3 id="pro-tip">Pro Tip</h3>
-<p>When creating a custom policy, always start with privileged psp and then start changing fields for <code>po.spec</code> according to changes in your policy. This can help you in debugging.</p>
-<h2 id="did-you-find-this-page-helpful-consider-sharing-it-">Did you find this page helpful? Consider sharing it 🙌</h2>
+<p>Growing the hash table starts with assigning a pointer called the &ldquo;old bucket&rdquo; pointer to the current bucket array. Then a new bucket array is allocated to hold twice the number of existing buckets. This could result in large allocations, but the memory is not initialized so the allocation is fast.</p>
+<p><strong>Important</strong>: Once the memory for the new bucket array is available, the key/value pairs from the old bucket array can be moved or &ldquo;evacuated&rdquo; to the new bucket array. Evacuations happen as key/value pairs are added or removed from the map. The key/value pairs that are together in an old bucket could be moved to different buckets inside the new bucket array. The evacuation algorithm attempts to distribute the key/value pairs evenly across the new bucket array.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>This is just a macro view of how maps are structured and grown. You can look into the <a href="https://golang.org/src/runtime/map.go" target="_blank" rel="noopener">the code</a> to undestand more how it works. It does show that if you know how many keys you need ahead of time, it is best to allocated that space during initialization.</p>
 
     </div>
 
@@ -1044,9 +879,11 @@ Annotations:  kubernetes.io/psp: minimal-psp-restricted
 
 <div class="article-tags">
   
-  <a class="badge badge-light" href="/tag/kubernetes/">kubernetes</a>
+  <a class="badge badge-light" href="/tag/golang/">golang</a>
   
-  <a class="badge badge-light" href="/tag/security/">security</a>
+  <a class="badge badge-light" href="/tag/internals/">internals</a>
+  
+  <a class="badge badge-light" href="/tag/hard/">hard</a>
   
 </div>
 
@@ -1063,7 +900,7 @@ Annotations:  kubernetes.io/psp: minimal-psp-restricted
       
       
       <li>
-        <a href="https://twitter.com/intent/tweet?url=/post/psp/&amp;text=Learning%20about%20Pod%20Security%20Policy" target="_blank" rel="noopener" class="share-btn-twitter">
+        <a href="https://twitter.com/intent/tweet?url=/post/golang-maps-internals/&amp;text=Macro%20view%20of%20Maps%20in%20Golang" target="_blank" rel="noopener" class="share-btn-twitter">
           <i class="fab fa-twitter"></i>
         </a>
       </li>
@@ -1076,7 +913,7 @@ Annotations:  kubernetes.io/psp: minimal-psp-restricted
       
       
       <li>
-        <a href="https://www.facebook.com/sharer.php?u=/post/psp/&amp;t=Learning%20about%20Pod%20Security%20Policy" target="_blank" rel="noopener" class="share-btn-facebook">
+        <a href="https://www.facebook.com/sharer.php?u=/post/golang-maps-internals/&amp;t=Macro%20view%20of%20Maps%20in%20Golang" target="_blank" rel="noopener" class="share-btn-facebook">
           <i class="fab fa-facebook"></i>
         </a>
       </li>
@@ -1089,7 +926,7 @@ Annotations:  kubernetes.io/psp: minimal-psp-restricted
       
       
       <li>
-        <a href="mailto:?subject=Learning%20about%20Pod%20Security%20Policy&amp;body=/post/psp/" target="_blank" rel="noopener" class="share-btn-email">
+        <a href="mailto:?subject=Macro%20view%20of%20Maps%20in%20Golang&amp;body=/post/golang-maps-internals/" target="_blank" rel="noopener" class="share-btn-email">
           <i class="fas fa-envelope"></i>
         </a>
       </li>
@@ -1102,7 +939,7 @@ Annotations:  kubernetes.io/psp: minimal-psp-restricted
       
       
       <li>
-        <a href="https://www.linkedin.com/shareArticle?url=/post/psp/&amp;title=Learning%20about%20Pod%20Security%20Policy" target="_blank" rel="noopener" class="share-btn-linkedin">
+        <a href="https://www.linkedin.com/shareArticle?url=/post/golang-maps-internals/&amp;title=Macro%20view%20of%20Maps%20in%20Golang" target="_blank" rel="noopener" class="share-btn-linkedin">
           <i class="fab fa-linkedin-in"></i>
         </a>
       </li>
@@ -1115,7 +952,7 @@ Annotations:  kubernetes.io/psp: minimal-psp-restricted
       
       
       <li>
-        <a href="whatsapp://send?text=Learning%20about%20Pod%20Security%20Policy%20/post/psp/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+        <a href="whatsapp://send?text=Macro%20view%20of%20Maps%20in%20Golang%20/post/golang-maps-internals/" target="_blank" rel="noopener" class="share-btn-whatsapp">
           <i class="fab fa-whatsapp"></i>
         </a>
       </li>
@@ -1128,7 +965,7 @@ Annotations:  kubernetes.io/psp: minimal-psp-restricted
       
       
       <li>
-        <a href="https://service.weibo.com/share/share.php?url=/post/psp/&amp;title=Learning%20about%20Pod%20Security%20Policy" target="_blank" rel="noopener" class="share-btn-weibo">
+        <a href="https://service.weibo.com/share/share.php?url=/post/golang-maps-internals/&amp;title=Macro%20view%20of%20Maps%20in%20Golang" target="_blank" rel="noopener" class="share-btn-weibo">
           <i class="fab fa-weibo"></i>
         </a>
       </li>
@@ -1288,15 +1125,8 @@ Annotations:  kubernetes.io/psp: minimal-psp-restricted
   
   
   <div class="post-nav-item">
-    <div class="meta-nav">Next</div>
-    <a href="/post/golang-maps-internals/" rel="next">Macro view of Maps in Golang</a>
-  </div>
-  
-  
-  
-  <div class="post-nav-item">
     <div class="meta-nav">Previous</div>
-    <a href="/post/cka/" rel="prev">Passing CKA exam</a>
+    <a href="/post/psp/" rel="prev">Learning about Pod Security Policy</a>
   </div>
   
 </div>
@@ -1313,9 +1143,9 @@ Annotations:  kubernetes.io/psp: minimal-psp-restricted
     <h3>Related</h3>
     <ul>
       
-      <li><a href="/post/cka/">Passing CKA exam</a></li>
+      <li><a href="/post/psp/">Learning about Pod Security Policy</a></li>
       
-      <li><a href="/post/golang-maps-internals/">Macro view of Maps in Golang</a></li>
+      <li><a href="/post/cka/">Passing CKA exam</a></li>
       
       <li><a href="/post/believe-in-yourself/">Believe in yourself</a></li>
       
