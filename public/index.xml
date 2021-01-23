@@ -5,12 +5,301 @@
     <link>/</link>
       <atom:link href="/index.xml" rel="self" type="application/rss+xml" />
     <description>knrt10&#39;s Blog</description>
-    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><copyright>knrt10 © 2021. [Site source code](https://github.com/knrt10/blog)</copyright><lastBuildDate>Sat, 09 Jan 2021 00:00:00 +0000</lastBuildDate>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><copyright>knrt10 © 2021. [Site source code](https://github.com/knrt10/blog)</copyright><lastBuildDate>Sat, 23 Jan 2021 00:00:00 +0000</lastBuildDate>
     <image>
       <url>/images/icon_hudaf87b0bbf6edf362efcd690a86c5023_625_512x512_fill_lanczos_center_2.png</url>
       <title>knrt10&#39;s Blog</title>
       <link>/</link>
     </image>
+    
+    <item>
+      <title>Anatomy of Structs in Golang</title>
+      <link>/post/golang-struct-anatomy/</link>
+      <pubDate>Sat, 23 Jan 2021 00:00:00 +0000</pubDate>
+      <guid>/post/golang-struct-anatomy/</guid>
+      <description>&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;nav id=&#34;TableOfContents&#34;&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href=&#34;#about&#34;&gt;About&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#what-are-structs-in-golang&#34;&gt;What are structs in Golang?&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#declaring-a-struct&#34;&gt;Declaring a struct&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#using-a-struct&#34;&gt;Using a Struct&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#memory-representation&#34;&gt;Memory Representation&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#memory-optimisation&#34;&gt;Memory Optimisation&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#conclusion&#34;&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#did-you-find-this-page-helpful-consider-sharing-it-&#34;&gt;Did you find this page helpful? Consider sharing it 🙌&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;
+&lt;h2 id=&#34;about&#34;&gt;About&lt;/h2&gt;
+&lt;p&gt;In the previous post we learnt about &lt;a href=&#34;../golang-maps-internals/&#34;&gt;Macro view of Maps in Golang&lt;/a&gt;, but in this post we will learn more about &lt;code&gt;Structs&lt;/code&gt;. Structs are building blocks of a Go application and anyone writing modular Go code will find themselves using it a lot. This spurred me to take a deep dive into exactly what a struct is, how they are represented in memory, and how to get the most out of structs.&lt;/p&gt;
+&lt;h2 id=&#34;what-are-structs-in-golang&#34;&gt;What are structs in Golang?&lt;/h2&gt;
+&lt;p&gt;A struct is a &lt;code&gt;user-defined&lt;/code&gt; type that represents a collection of fields. It can be used in places where it makes sense to group the data into a single unit rather than having each of them as separate values.&lt;/p&gt;
+&lt;p&gt;In simple language, an employee has a firstName, lastName and age. It makes sense to group these three properties into a single struct named &lt;code&gt;Employee&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;type Employee struct {  
+  firstName string
+  lastName  string
+  age       int
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2 id=&#34;declaring-a-struct&#34;&gt;Declaring a struct&lt;/h2&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;type Employee struct {  
+  firstName string
+  lastName  string
+  age       int
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The above snippet declares a struct type &lt;code&gt;Employee&lt;/code&gt; with fields &lt;code&gt;firstName, lastName&lt;/code&gt; and &lt;code&gt;age&lt;/code&gt;. The above Employee struct is called a &lt;strong&gt;named struct&lt;/strong&gt; because it creates a new data type named &lt;code&gt;Employee&lt;/code&gt; using which Employee structs can be created.&lt;/p&gt;
+&lt;p&gt;This struct can also be made more compact by declaring fields that belong to the same type in a single line followed by the type name. In the above struct &lt;code&gt;firstName&lt;/code&gt; and &lt;code&gt;lastName&lt;/code&gt; belong to the same type &lt;code&gt;string&lt;/code&gt; and hence the struct can be rewritten as&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;type Employee struct {  
+  firstName, lastName string
+  age                 int
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Although the above syntax saves a few lines of code, it doesn&amp;rsquo;t make the field declarations explicit. Please refrain from using the above syntax.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;using-a-struct&#34;&gt;Using a Struct&lt;/h2&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;package main
+
+import (  
+  &amp;quot;fmt&amp;quot;
+)
+
+type Employee struct {  
+  firstName string
+  lastName  string
+  age       int
+  salary    int
+}
+
+func main() {
+
+  //creating struct specifying field names.
+  emp1 := Employee{
+    firstName: &amp;quot;Sam&amp;quot;,
+    age:       25,
+    salary:    500,
+    lastName:  &amp;quot;Anderson&amp;quot;,
+  }
+
+  //creating struct without specifying field names.
+  emp2 := Employee{&amp;quot;Thomas&amp;quot;, &amp;quot;Paul&amp;quot;, 29, 800}
+
+  fmt.Println(&amp;quot;Employee 1&amp;quot;, emp1)
+  fmt.Println(&amp;quot;Employee 2&amp;quot;, emp2)
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;In the above code we first define a struct &lt;code&gt;Employee&lt;/code&gt; with the given fields. Then inside the &lt;code&gt;main&lt;/code&gt; function we declare a variable &lt;code&gt;emp1&lt;/code&gt; of type &lt;code&gt;Employee&lt;/code&gt; with it&amp;rsquo;s corresponding values. Any fields omitted from when instantiating a struct will take on the &lt;code&gt;zero value&lt;/code&gt; of that field&amp;rsquo;s type. E.g. if age was omitted when creating a user the default value is &lt;code&gt;0&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Similarly we define a variable &lt;code&gt;emp2&lt;/code&gt; with diffrent values and then print both the structs. The above program outputs&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;Employee 1 {Sam Anderson 25 500}  
+Employee 2 {Thomas Paul 29 800}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This was the basics of structs, to learn more about struct follow the &lt;a href=&#34;https://tour.golang.org/moretypes/2&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;tour of go&lt;/a&gt;. This guide focuses more on memory representation of struct so we will now learn about it.&lt;/p&gt;
+&lt;h2 id=&#34;memory-representation&#34;&gt;Memory Representation&lt;/h2&gt;
+&lt;p&gt;When it comes to memory allocation for structs, they are always allocated contiguous, byte-aligned blocks of memory, and fields are allocated and stored in the order that they are defined.&lt;/p&gt;
+&lt;p&gt;The concept of byte-alignment in this context means that the contiguous blocks of memory are aligned at offsets equal to the platforms word size (&lt;em&gt;4 bytes on a 32-bit, 8 bytes on a 64-bit system&lt;/em&gt;). Consider the following example of a struct where there are three fields each of varying sizes, on a 64-bit environment blocks of memory will be aligned at 8 byte offsets.&lt;/p&gt;
+&lt;p&gt;This results in the first block of 8 bytes being fully occupied by &lt;code&gt;a&lt;/code&gt; (8 bytes). The next block of memory (&lt;em&gt;offset by 8 bytes from the starting memory address of the struct&lt;/em&gt;) has its first 2 bytes occupied by &lt;code&gt;b&lt;/code&gt;, the next 1 byte occupied by &lt;code&gt;c&lt;/code&gt; then the remaining 5 bytes are empty pad bytes.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;package main
+
+import (
+  &amp;quot;fmt&amp;quot;
+  &amp;quot;unsafe&amp;quot;
+)
+
+type MemoryTaken struct {
+  a int   // 8 byte
+  b int16 // 2 bytes
+  c bool  // 1 bytes
+}
+
+func main() {
+  fmt.Printf(&amp;quot;Sizeof MemoryTaken: %d\n&amp;quot;, unsafe.Sizeof(MemoryTaken{}))
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;When you run the above program you will get the following output:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;Sizeof MemoryTaken: 16
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Let us see the memory struct layout for the above struct &lt;code&gt;MemoryTaken&lt;/code&gt;&lt;/p&gt;
+
+
+
+
+
+
+  
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-memory-struct-layout&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;/post/golang-struct-anatomy/memory-struct-layout_hu16c08cc59f9ecc1d431e74b81195001e_23056_2000x2000_fit_q75_lanczos.jpg&#34; data-caption=&#34;Memory Struct Layout&#34;&gt;
+
+
+  &lt;img data-src=&#34;/post/golang-struct-anatomy/memory-struct-layout_hu16c08cc59f9ecc1d431e74b81195001e_23056_2000x2000_fit_q75_lanczos.jpg&#34; class=&#34;lazyload&#34; alt=&#34;&#34; width=&#34;892&#34; height=&#34;418&#34;&gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    Memory Struct Layout
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;memory-optimisation&#34;&gt;Memory Optimisation&lt;/h2&gt;
+&lt;p&gt;Considering how memory is allocated for structs as seen in the previous section, depending on the order that fields are defined in a struct it can be rather inefficient due to the number of pad bytes required.  It is possible to optimise the memory utilisation of a struct however, by defining the fields in a deliberate order to maximise the use of each block of memory, reducing the need for redundant pad bytes.&lt;/p&gt;
+&lt;p&gt;The following example there is a struct &lt;code&gt;Canditate&lt;/code&gt; representing a candidate for a company. In the first iteration, before taking steps to optimise its memory utilisation the total memory of the combined fields totals 35 bytes, however, the total struct size equates to 48 bytes due to pad bytes.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;package main
+
+import (
+  &amp;quot;fmt&amp;quot;
+  &amp;quot;unsafe&amp;quot;
+)
+
+type Canditate struct {
+  hired    bool   // 1 byte
+  name     string // 16 Bytes
+  position string // 16 Bytes
+  age      int16  // 2 bytes
+  // 35 bytes total, 13 bytes padding
+}
+
+func main() {
+  fmt.Printf(&amp;quot;Sizeof Unoptimized Canditate struct: %d\n&amp;quot;, unsafe.Sizeof(Canditate{}))
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;When you run the above program you will get the following output:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;Sizeof Unoptimized Canditate struct: 48
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now we will see the memory representation for the struct &lt;code&gt;Canditate&lt;/code&gt; above:&lt;/p&gt;
+
+
+
+
+
+
+  
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-unoptimized-candidate-struct&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;/post/golang-struct-anatomy/unoptimized-candidate-struct_hua58a9feefb5f17c1370b19c141b25168_31048_2000x2000_fit_q75_lanczos.jpg&#34; data-caption=&#34;Unoptimized Candidate Struct&#34;&gt;
+
+
+  &lt;img data-src=&#34;/post/golang-struct-anatomy/unoptimized-candidate-struct_hua58a9feefb5f17c1370b19c141b25168_31048_2000x2000_fit_q75_lanczos.jpg&#34; class=&#34;lazyload&#34; alt=&#34;&#34; width=&#34;1529&#34; height=&#34;346&#34;&gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    Unoptimized Candidate Struct
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;p&gt;Now, if the struct fields are re-arranged to minimise padding bytes, the resulting struct size is only 40 bytes.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;package main
+
+import (
+  &amp;quot;fmt&amp;quot;
+  &amp;quot;unsafe&amp;quot;
+)
+
+type Canditate struct {
+  name     string // 16 Bytes
+  position string // 16 Bytes
+  age      int16  // 2 bytes
+  hired    bool   // 1 byte
+  // 35 bytes total, 5 bytes padding
+}
+
+func main() {
+  fmt.Printf(&amp;quot;Sizeof Optimized Canditate struct: %d\n&amp;quot;, unsafe.Sizeof(Canditate{}))
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;When you run the above program you will get the following output:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;Sizeof Optimized Canditate struct: 40
+&lt;/code&gt;&lt;/pre&gt;
+
+
+
+
+
+
+  
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-optimized-candidate-struct&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;/post/golang-struct-anatomy/optimized-candidate-struct_hu9b6512bb61f94de1afcf7886c5f0c7f1_24540_2000x2000_fit_q75_lanczos.jpg&#34; data-caption=&#34;Optimized Candidate Struct&#34;&gt;
+
+
+  &lt;img data-src=&#34;/post/golang-struct-anatomy/optimized-candidate-struct_hu9b6512bb61f94de1afcf7886c5f0c7f1_24540_2000x2000_fit_q75_lanczos.jpg&#34; class=&#34;lazyload&#34; alt=&#34;&#34; width=&#34;953&#34; height=&#34;464&#34;&gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    Optimized Candidate Struct
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;In modern systems where memory constraints are not typically an issue, the benefit gained from micro-optimisations like this, reclaiming 8 bytes of memory is not enormous. However, the ability to understand at this level, how a struct is allocated memory, and how to, if required apply such optimisations is invaluable.&lt;/p&gt;
+&lt;h2 id=&#34;did-you-find-this-page-helpful-consider-sharing-it-&#34;&gt;Did you find this page helpful? Consider sharing it 🙌&lt;/h2&gt;
+</description>
+    </item>
     
     <item>
       <title>Macro view of Maps in Golang</title>
@@ -27,6 +316,7 @@
     &lt;li&gt;&lt;a href=&#34;#macro-view&#34;&gt;Macro view&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href=&#34;#how-maps-grow&#34;&gt;How Maps Grow&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href=&#34;#conclusion&#34;&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#did-you-find-this-page-helpful-consider-sharing-it-&#34;&gt;Did you find this page helpful? Consider sharing it 🙌&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
 &lt;/nav&gt;
 &lt;h2 id=&#34;about&#34;&gt;About&lt;/h2&gt;
@@ -184,6 +474,7 @@ missprobe   : Number of entries that need to be checked when looking up an absen
 &lt;p&gt;&lt;strong&gt;Important&lt;/strong&gt;: Once the memory for the new bucket array is available, the key/value pairs from the old bucket array can be moved or &amp;ldquo;evacuated&amp;rdquo; to the new bucket array. Evacuations happen as key/value pairs are added or removed from the map. The key/value pairs that are together in an old bucket could be moved to different buckets inside the new bucket array. The evacuation algorithm attempts to distribute the key/value pairs evenly across the new bucket array.&lt;/p&gt;
 &lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
 &lt;p&gt;This is just a macro view of how maps are structured and grown. You can look into the &lt;a href=&#34;https://golang.org/src/runtime/map.go&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;the code&lt;/a&gt; to undestand more how it works. It does show that if you know how many keys you need ahead of time, it is best to allocated that space during initialization.&lt;/p&gt;
+&lt;h2 id=&#34;did-you-find-this-page-helpful-consider-sharing-it-&#34;&gt;Did you find this page helpful? Consider sharing it 🙌&lt;/h2&gt;
 </description>
     </item>
     

@@ -129,3 +129,5 @@ Growing the hash table starts with assigning a pointer called the "old bucket" p
 ## Conclusion
 
 This is just a macro view of how maps are structured and grown. You can look into the [the code](https://golang.org/src/runtime/map.go) to undestand more how it works. It does show that if you know how many keys you need ahead of time, it is best to allocated that space during initialization.
+
+## Did you find this page helpful? Consider sharing it 🙌
