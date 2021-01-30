@@ -34,10 +34,10 @@
   
     
   
-  <meta name="description" content="Understand how maps are stored in Golang internally and why are they an unsorted collections.">
+  <meta name="description" content="Understand Seccomp profiles for Docker while experimenting and creating our own seccomp profile json file and running docker container with it.">
 
   
-  <link rel="alternate" hreflang="en-us" href="/post/golang-maps-internals/">
+  <link rel="alternate" hreflang="en-us" href="/post/seccomp-security-profiles-docker/">
 
   
 
@@ -257,7 +257,7 @@
   <link rel="icon" type="image/png" href="/images/icon_hudaf87b0bbf6edf362efcd690a86c5023_625_32x32_fill_lanczos_center_2.png">
   <link rel="apple-touch-icon" type="image/png" href="/images/icon_hudaf87b0bbf6edf362efcd690a86c5023_625_192x192_fill_lanczos_center_2.png">
 
-  <link rel="canonical" href="/post/golang-maps-internals/">
+  <link rel="canonical" href="/post/seccomp-security-profiles-docker/">
 
   
   
@@ -276,15 +276,15 @@
   <meta property="twitter:creator" content="@knrt_10">
   
   <meta property="og:site_name" content="knrt10&#39;s Blog">
-  <meta property="og:url" content="/post/golang-maps-internals/">
-  <meta property="og:title" content="Macro view of Maps in Golang | knrt10&#39;s Blog">
-  <meta property="og:description" content="Understand how maps are stored in Golang internally and why are they an unsorted collections."><meta property="og:image" content="/images/icon_hudaf87b0bbf6edf362efcd690a86c5023_625_512x512_fill_lanczos_center_2.png">
+  <meta property="og:url" content="/post/seccomp-security-profiles-docker/">
+  <meta property="og:title" content="Seccomp security profiles for Docker | knrt10&#39;s Blog">
+  <meta property="og:description" content="Understand Seccomp profiles for Docker while experimenting and creating our own seccomp profile json file and running docker container with it."><meta property="og:image" content="/images/icon_hudaf87b0bbf6edf362efcd690a86c5023_625_512x512_fill_lanczos_center_2.png">
   <meta property="twitter:image" content="/images/icon_hudaf87b0bbf6edf362efcd690a86c5023_625_512x512_fill_lanczos_center_2.png"><meta property="og:locale" content="en-us">
   
     
-      <meta property="article:published_time" content="2021-01-09T00:00:00&#43;00:00">
+      <meta property="article:published_time" content="2021-01-30T00:00:00&#43;00:00">
     
-    <meta property="article:modified_time" content="2021-01-23T17:11:25&#43;05:30">
+    <meta property="article:modified_time" content="2021-01-30T00:00:00&#43;00:00">
   
 
   
@@ -308,12 +308,12 @@
   "@type": "BlogPosting",
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": "/post/golang-maps-internals/"
+    "@id": "/post/seccomp-security-profiles-docker/"
   },
-  "headline": "Macro view of Maps in Golang",
+  "headline": "Seccomp security profiles for Docker",
   
-  "datePublished": "2021-01-09T00:00:00Z",
-  "dateModified": "2021-01-23T17:11:25+05:30",
+  "datePublished": "2021-01-30T00:00:00Z",
+  "dateModified": "2021-01-30T00:00:00Z",
   
   "author": {
     "@type": "Person",
@@ -328,7 +328,7 @@
       "url": "/images/icon_hudaf87b0bbf6edf362efcd690a86c5023_625_192x192_fill_lanczos_center_2.png"
     }
   },
-  "description": "Understand how maps are stored in Golang internally and why are they an unsorted collections."
+  "description": "Understand Seccomp profiles for Docker while experimenting and creating our own seccomp profile json file and running docker container with it."
 }
 </script>
 
@@ -346,7 +346,7 @@
 
 
 
-  <title>Macro view of Maps in Golang | knrt10&#39;s Blog</title>
+  <title>Seccomp security profiles for Docker | knrt10&#39;s Blog</title>
 
 </head>
 
@@ -617,7 +617,7 @@
   
   
 <div class="article-container pt-3">
-  <h1>Macro view of Maps in Golang</h1>
+  <h1>Seccomp security profiles for Docker</h1>
 
   
 
@@ -645,10 +645,8 @@
     
     
       
-          Last updated on
-      
     
-    Jan 23, 2021
+    Jan 30, 2021
   </span>
   
 
@@ -657,7 +655,7 @@
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    6 min read
+    5 min read
   </span>
   
 
@@ -667,14 +665,14 @@
   
   
   <span class="middot-divider"></span>
-  <a href="/post/golang-maps-internals/#disqus_thread"></a>
+  <a href="/post/seccomp-security-profiles-docker/#disqus_thread"></a>
   
 
   
   
   <span class="middot-divider"></span>
   <span class="article-categories">
-    <i class="fas fa-folder mr-1"></i><a href="/category/golang/">golang</a>, <a href="/category/tech/">tech</a></span>
+    <i class="fas fa-folder mr-1"></i><a href="/category/docker/">docker</a>, <a href="/category/tech/">tech</a></span>
   
 
 </div>
@@ -705,171 +703,144 @@
       <h2>Table of Contents</h2>
 <nav id="TableOfContents">
   <ul>
-    <li><a href="#about">About</a></li>
-    <li><a href="#what-are-maps-in-golang">What are maps in Golang?</a></li>
-    <li><a href="#introduction">Introduction</a></li>
-    <li><a href="#creating-and-using-maps">Creating and Using Maps</a></li>
-    <li><a href="#macro-view">Macro view</a></li>
-    <li><a href="#how-maps-grow">How Maps Grow</a></li>
+    <li><a href="#what-is-seccomp">What is Seccomp?</a></li>
+    <li><a href="#how-docker-uses-seccomp">How docker uses Seccomp?</a></li>
+    <li><a href="#creating-out-own-seccomp-profile-json-file">Creating out own seccomp profile json file</a></li>
     <li><a href="#conclusion">Conclusion</a></li>
     <li><a href="#did-you-find-this-page-helpful-consider-sharing-it-">Did you find this page helpful? Consider sharing it 🙌</a></li>
   </ul>
 </nav>
-<h2 id="about">About</h2>
-<p>This article will focus on explaining macro view of maps in Go and why are they an unsorted collections. You should have atleat a basic knowledge of what are maps in Golang. If you don&rsquo;t know don&rsquo;t worry I will try to explain it as clearly as I can.</p>
-<h2 id="what-are-maps-in-golang">What are maps in Golang?</h2>
-<p>A map is a builtin type in Go that is used to store <em>key-value</em> pairs. Let&rsquo;s take the example of a startup with a few employees. For simplicity, let&rsquo;s assume that the first name of all these employees is unique. We are looking for a data structure to store the salary of each employee. A map will be a perfect fit for this use case. The name of the employee can be the key and the salary can be the value. Maps are similar to dictionaries in other languages such as Python.</p>
-<p>To learn more about map, refer to <a href="https://tour.golang.org/moretypes/19" target="_blank" rel="noopener">golang website</a>.</p>
-<h2 id="introduction">Introduction</h2>
-<p>There are lots of posts that talk about the internals of slices, but when it comes to maps, we are left in the dark. I was wondering why and then I found <a href="https://golang.org/src/runtime/map.go" target="_blank" rel="noopener">the code</a> for maps and it all made sense. At least for me, this code is complicated. That being said, I think we can create a macro view of how maps are structured and grow. This should explain why they are unordered, efficient and fast.</p>
-<h2 id="creating-and-using-maps">Creating and Using Maps</h2>
-<p>Let’s look at how we can use a map literal to create a map and store a few values:</p>
-<pre><code class="language-go">// Create an empty map with a key and value of type string.
-employee := map[string]string{}
-
-// Add a few keys/value pairs to the map.
-employee[&quot;name&quot;] = &quot;knrt10&quot;
-employee[&quot;age&quot;]  = &quot;23&quot;
-employee[&quot;tag&quot;]  = &quot;Cloud Infrastructure Engineer&quot;
-employee[&quot;location&quot;] = &quot;India&quot;
+<h2 id="what-is-seccomp">What is Seccomp?</h2>
+<p>As per the <a href="https://www.kernel.org/doc/Documentation/prctl/seccomp_filter.txt" target="_blank" rel="noopener">kernel documentation</a></p>
+<blockquote>
+<p>A large number of system calls are exposed to every userland process
+with many of them going unused for the entire lifetime of the process.
+As system calls change and mature, bugs are found and eradicated.  A
+certain subset of userland applications benefit by having a reduced set
+of available system calls.  The resulting set reduces the total kernel
+surface exposed to the application.  System call filtering is meant for
+use with those applications.</p>
+</blockquote>
+<blockquote>
+<p>Seccomp filtering provides a means for a process to specify a filter for
+incoming system calls.  The filter is expressed as a Berkeley Packet
+Filter (BPF) program, as with socket filters, except that the data
+operated on is related to the system call being made: system call
+number and the system call arguments.  This allows for expressive
+filtering of system calls using a filter program language with a long
+history of being exposed to userland and a straightforward data set.</p>
+</blockquote>
+<h2 id="how-docker-uses-seccomp">How docker uses Seccomp?</h2>
+<p>Secure computing mode <code>(seccomp)</code> is a Linux kernel feature. You can use it to restrict the actions available within the container. The <code>seccomp()</code> system call operates on the seccomp state of the calling process. You can use this feature to restrict your application’s access.</p>
+<p>This feature is available only if Docker has been built with seccomp and the kernel is configured with <code>CONFIG_SECCOMP</code> enabled. To check if your kernel supports seccomp:</p>
+<pre><code class="language-bash">$ grep CONFIG_SECCOMP= /boot/config-$(uname -r)
+CONFIG_SECCOMP=y
 </code></pre>
-<p>When we add values to a map, we always specify a key that is associated with the value. This key is used to find this value again without the need to iterate through the entire collection:</p>
-<pre><code class="language-go">fmt.Printf(&quot;Value: %s&quot;, employee[&quot;name&quot;])
+<p>The default <code>seccomp</code> profile provides a sane default for running containers with seccomp and disables around <code>44</code> system calls out of <code>300+</code>. It is moderately protective while providing wide application compatibility. The default Docker profile can be found <a href="https://github.com/moby/moby/blob/master/profiles/seccomp/default.json" target="_blank" rel="noopener">here</a>.</p>
+<p><code>seccomp</code> is instrumental for running Docker containers with least privilege. It is not recommended to change the default seccomp profile.</p>
+<p>When you run a container, it uses the default profile unless you override it with the <code>--security-opt</code> option. For example, the following explicitly specifies a policy:</p>
+<pre><code class="language-bash">docker run --rm \
+  -it \
+  --security-opt seccomp=/path/to/seccomp/profile.json \
+  hello-world
 </code></pre>
-<p>If we do iterate through the map, we will not necessarily get the keys back in the same order. In fact, every time you run the code, the order could change:</p>
-<pre><code class="language-go">employee := map[string]string{}
-
-employee[&quot;name&quot;] = &quot;knrt10&quot;
-employee[&quot;age&quot;]  = &quot;23&quot;
-employee[&quot;tag&quot;]  = &quot;Cloud Infrastructure Engineer&quot;
-employee[&quot;location&quot;] = &quot;India&quot;
-
-for key, value := range employee {
-    fmt.Printf(&quot;%s:%s, &quot;, key, value)
+<p>Let&rsquo;s take a look at snippet of syscalls allowed from the default profile:</p>
+<pre><code class="language-json">{
+  &quot;names&quot;: [
+    &quot;bpf&quot;,
+    &quot;clone&quot;,
+    &quot;fanotify_init&quot;,
+    &quot;lookup_dcookie&quot;,
+    &quot;mount&quot;,
+    &quot;name_to_handle_at&quot;,
+    &quot;perf_event_open&quot;,
+    &quot;quotactl&quot;,
+    &quot;setdomainname&quot;,
+    &quot;sethostname&quot;,
+    &quot;setns&quot;,
+    &quot;syslog&quot;,
+    &quot;umount&quot;,
+    &quot;umount2&quot;,
+    &quot;unshare&quot;
+  ],
+  &quot;action&quot;: &quot;SCMP_ACT_ALLOW&quot;,
+  &quot;args&quot;: [],
+  &quot;comment&quot;: &quot;&quot;,
+  &quot;includes&quot;: {
+    &quot;caps&quot;: [
+        &quot;CAP_SYS_ADMIN&quot;
+    ]
+  },
+  &quot;excludes&quot;: {}
 }
-
-# Output:
-location:India, name:knrt10, age:23, tag:Cloud Infrastructure Engineer,
-name:knrt10, age:23, tag:Cloud Infrastructure Engineer, location:India,
 </code></pre>
-<p>Now that we know how to create, set key/value pairs and iterate over a map, we can peek under the hood.</p>
-<h2 id="macro-view">Macro view</h2>
-<p>Maps in Go are implemented as a hash table. If you need to learn what a hash table is, there are lots of articles and posts about the subject. You can learn about <a href="http://en.wikipedia.org/wiki/Hash_table" target="_blank" rel="noopener">Hash table</a> on Wikipedia.</p>
-<p>A map is just a hash table. The data is arranged into an array of buckets. The number of buckets is always equal to a power of 2. Each bucket contains up to 8 key/value pairs.</p>
-<p>When a map operation is performed, such as <code>(employee[&quot;name&quot;] = &quot;knrt10&quot;)</code>, a hash key is generated against the key that is specified. In this case the string &ldquo;name&rdquo; is used to generate the hash key. The <strong>low order bits</strong> (LOB) of the generated hash key is used to select a bucket. If more than 8 keys hash to a bucket, it chains on extra buckets.</p>
-<p>The low-order bits of the hash are used to select a bucket. Each bucket contains a few high-order bits of each hash to distinguish the entries within a single bucket.</p>
-
-
-
-
-
-
-  
-
-
-
-  
-  
-
-
-
-
-
-
-
-
-
-
-
-<figure id="figure-buckets-in-map">
-
-
-  <a data-fancybox="" href="/post/golang-maps-internals/buckets_hufa055bc4c040712f6c8cb70209fffa61_37298_2000x2000_fit_q75_lanczos.jpg" data-caption="Buckets in Map">
-
-
-  <img data-src="/post/golang-maps-internals/buckets_hufa055bc4c040712f6c8cb70209fffa61_37298_2000x2000_fit_q75_lanczos.jpg" class="lazyload" alt="" width="707" height="305">
-</a>
-
-
-  
-  
-  <figcaption>
-    Buckets in Map
-  </figcaption>
-
-
-</figure>
-
-<p>Once a bucket is selected, the <em>key/value</em> pair needs to be stored, removed or looked up, depending on the type of operation. If we look inside any bucket, we will find two data structures. First, there is an array with the top 8 high order bits (HOB) from the same hash key that was used to select the bucket. This array distinguishes each individual key/value pair stored in the respective bucket. Second, there is an array of bytes that store the key/value pairs. The byte array packs all the keys and then all the values together for the respective bucket.</p>
-<p>When we are iterating through a map, the iterator walks through the array of buckets and then return the key/value pairs in the order they are laid out in the byte array. <strong><code>This is why maps are unsorted collections</code></strong>. The hash keys determines the walk order of the map because they determine which buckets each key/value pair will end up in.</p>
-<p>The 1 byte value in this map would result in 7 extra bytes of padding per key/value pair. By packing the key/value pairs as key/key/value/value, the padding only has to be appended to the end of the byte array and not in between. Eliminating the padding bytes saves the bucket and the map a good amount of memory. I will explain about alignment boundaries is some other article</p>
-<p>A bucket is configured to store only 8 key/value pairs. If a ninth key needs to be added to a bucket that is full, an overflow bucket is created and reference from inside the respective bucket.</p>
-
-
-
-
-
-
-  
-
-
-
-  
-  
-
-
-
-
-
-
-
-
-
-
-
-<figure id="figure-buckets-resizing-map">
-
-
-  <a data-fancybox="" href="/post/golang-maps-internals/bucket-resizing_hu78d8e425af6231959673fbd9e26825c8_59937_2000x2000_fit_q75_lanczos.jpg" data-caption="Buckets Resizing Map">
-
-
-  <img data-src="/post/golang-maps-internals/bucket-resizing_hu78d8e425af6231959673fbd9e26825c8_59937_2000x2000_fit_q75_lanczos.jpg" class="lazyload" alt="" width="694" height="410">
-</a>
-
-
-  
-  
-  <figcaption>
-    Buckets Resizing Map
-  </figcaption>
-
-
-</figure>
-
-<h2 id="how-maps-grow">How Maps Grow</h2>
-<p>As we continue to add or remove key/value pairs from the map, the efficiency of the map lookups begin to <strong>deteriorate</strong>. The load threshold values that determine when to grow the hash table are based on these four factors:</p>
-<pre><code class="language-json">% overflow  : Percentage of buckets which have an overflow bucket
-bytes/entry : Number of overhead bytes used per key/value pair
-hitprobe    : Number of entries that need to be checked when looking up a present key
-missprobe   : Number of entries that need to be checked when looking up an absent key
+<p><code>names</code> field in above json snippet refers to syscalls of linux kernel. They are only allowed for containers that you run with capability <code>CAP_SYS_ADMIN</code> mentioned in <code>action</code> json field. You can pass this capability to a container using <code>--cap-add</code> flag.</p>
+<h2 id="creating-out-own-seccomp-profile-json-file">Creating out own seccomp profile json file</h2>
+<p>One thing to know is that every executable binary in unix system has some capabilities assigned to it. For example if you want to find capabilities assined to <code>ping</code> binary just use <code>getcap</code> command like this:</p>
+<pre><code class="language-bash">$ getcap $(which ping)
+/usr/bin/ping = cap_net_admin,cap_net_raw+p
 </code></pre>
-<p>Some stats for different loads for (64-bit, 8 byte keys and elems)</p>
-<pre><code class="language-bash">//  loadFactor    %overflow  bytes/entry     hitprobe    missprobe
-
-//        4.00         2.13        20.77         3.00         4.00
-//        4.50         4.05        17.30         3.25         4.50
-//        5.00         6.85        14.77         3.50         5.00
-//        5.50        10.55        12.94         3.75         5.50
-//        6.00        15.27        11.67         4.00         6.00
-//        6.50        20.90        10.79         4.25         6.50
-//        7.00        27.14        10.15         4.50         7.00
-//        7.50        34.03         9.73         4.75         7.50
-//        8.00        41.10         9.40         5.00         8.00
+<p>So what we will do that, is we will be tying <code>CAP_AUDIT_CONTROL</code> capability to our <code>chown</code> syscall. You can take any other capability other than <code>CAP_CHOWN</code>.</p>
+<blockquote>
+<p>This is purely for experimenting and understanding how seccomp profile will work. DO NOT use it in production environment.</p>
+</blockquote>
+<p>To make this work we will remove all the occurances of <code>chown</code> syscall from <a href="https://github.com/moby/moby/blob/master/profiles/seccomp/default.json" target="_blank" rel="noopener">default</a> seccomp profile and move it to our custom profile like this:</p>
+<pre><code class="language-bash">{
+  &quot;names&quot;: [
+    &quot;chown&quot;,
+    &quot;chown32&quot;,
+    &quot;fchown&quot;,
+    &quot;fchown32&quot;,
+    &quot;fchownat&quot;,
+    &quot;lchown&quot;,
+    &quot;lchown32&quot;
+  ],
+  &quot;action&quot;: &quot;SCMP_ACT_ALLOW&quot;,
+  &quot;args&quot;: [],
+  &quot;comment&quot;: &quot;&quot;,
+  &quot;includes&quot;: {
+    &quot;caps&quot;: [
+      &quot;CAP_AUDIT_CONTROL&quot;
+    ]
+  },
+  &quot;excludes&quot;: {}
+}
 </code></pre>
-<p>Growing the hash table starts with assigning a pointer called the &ldquo;old bucket&rdquo; pointer to the current bucket array. Then a new bucket array is allocated to hold twice the number of existing buckets. This could result in large allocations, but the memory is not initialized so the allocation is fast.</p>
-<p><strong>Important</strong>: Once the memory for the new bucket array is available, the key/value pairs from the old bucket array can be moved or &ldquo;evacuated&rdquo; to the new bucket array. Evacuations happen as key/value pairs are added or removed from the map. The key/value pairs that are together in an old bucket could be moved to different buckets inside the new bucket array. The evacuation algorithm attempts to distribute the key/value pairs evenly across the new bucket array.</p>
+<p>Final <code>json</code> file can be <a href="https://gist.github.com/knrt10/4c877585947f34fbfcab7626f3e7229c" target="_blank" rel="noopener">found here</a>. Copy it from github gist and save it as <code>custom-profile.json</code> because it will be used in our next step for running docker container. Run the below command:</p>
+<pre><code class="language-bash">$ docker run --rm -it --security-opt seccomp=custom-profile.json debian bash
+
+# Try creating a user
+root@429a518f8ec5:/# useradd knrt10
+useradd: failure while writing changes to /etc/passwd
+</code></pre>
+<p>Above command will fail as <code>useradd</code> syscall uses <code>CAP_CHOWN</code> internally. That is different topic, I will write an article about it another time.</p>
+<p>Now exit and try to run the docker container using this command:</p>
+<pre><code class="language-bash">$ docker run --cap-add=CAP_AUDIT_CONTROL --rm -it --security-opt seccomp=custom-profile.json debian bash
+
+# create a new user
+root@ea95510fcb7c:/# useradd -m knrt10
+
+# check current user i.e root
+root@ea95510fcb7c:/# id -u
+0
+
+# create a file
+root@ea95510fcb7c:/# touch a
+
+# check permissions on file. Note currently it is owned by root
+root@ea95510fcb7c:/# ls -l a
+-rw-r--r-- 1 root root 0 Jan 30 11:21 a
+
+# change ownership to earlier created user
+root@ea95510fcb7c:/# chown knrt10 a
+
+# check permissions on file. It is changed to user knrt10
+root@ea95510fcb7c:/# ls -l a
+-rw-r--r-- 1 knrt10 root 0 Jan 30 11:21 a
+</code></pre>
+<p>When running the docker container by explicitly specifying the capability <code>CAP_AUDIT_CONTROL</code> and then the container allows and uses syscall <code>chown</code>. In this way you can create your own profile and tie it up with any capability you want.</p>
 <h2 id="conclusion">Conclusion</h2>
-<p>This is just a macro view of how maps are structured and grown. You can look into the <a href="https://golang.org/src/runtime/map.go" target="_blank" rel="noopener">the code</a> to undestand more how it works. It does show that if you know how many keys you need ahead of time, it is best to allocated that space during initialization.</p>
+<p>You learnt how seccomp profiles are used by docker and how you can create a custom seccomp profile and use it while running your docker container. This is mostly used for security purposes when you don&rsquo;t want your container to have extra kernel priviledges. You can learn more in details from <a href="https://docs.docker.com/engine/security/seccomp/" target="_blank" rel="noopener">docker</a> documentation.</p>
 <h2 id="did-you-find-this-page-helpful-consider-sharing-it-">Did you find this page helpful? Consider sharing it 🙌</h2>
 
     </div>
@@ -883,11 +854,9 @@ missprobe   : Number of entries that need to be checked when looking up an absen
 
 <div class="article-tags">
   
-  <a class="badge badge-light" href="/tag/golang/">golang</a>
+  <a class="badge badge-light" href="/tag/docker/">docker</a>
   
-  <a class="badge badge-light" href="/tag/internals/">internals</a>
-  
-  <a class="badge badge-light" href="/tag/hard/">hard</a>
+  <a class="badge badge-light" href="/tag/security/">security</a>
   
 </div>
 
@@ -904,7 +873,7 @@ missprobe   : Number of entries that need to be checked when looking up an absen
       
       
       <li>
-        <a href="https://twitter.com/intent/tweet?url=/post/golang-maps-internals/&amp;text=Macro%20view%20of%20Maps%20in%20Golang" target="_blank" rel="noopener" class="share-btn-twitter">
+        <a href="https://twitter.com/intent/tweet?url=/post/seccomp-security-profiles-docker/&amp;text=Seccomp%20security%20profiles%20for%20Docker" target="_blank" rel="noopener" class="share-btn-twitter">
           <i class="fab fa-twitter"></i>
         </a>
       </li>
@@ -917,7 +886,7 @@ missprobe   : Number of entries that need to be checked when looking up an absen
       
       
       <li>
-        <a href="https://www.facebook.com/sharer.php?u=/post/golang-maps-internals/&amp;t=Macro%20view%20of%20Maps%20in%20Golang" target="_blank" rel="noopener" class="share-btn-facebook">
+        <a href="https://www.facebook.com/sharer.php?u=/post/seccomp-security-profiles-docker/&amp;t=Seccomp%20security%20profiles%20for%20Docker" target="_blank" rel="noopener" class="share-btn-facebook">
           <i class="fab fa-facebook"></i>
         </a>
       </li>
@@ -930,7 +899,7 @@ missprobe   : Number of entries that need to be checked when looking up an absen
       
       
       <li>
-        <a href="mailto:?subject=Macro%20view%20of%20Maps%20in%20Golang&amp;body=/post/golang-maps-internals/" target="_blank" rel="noopener" class="share-btn-email">
+        <a href="mailto:?subject=Seccomp%20security%20profiles%20for%20Docker&amp;body=/post/seccomp-security-profiles-docker/" target="_blank" rel="noopener" class="share-btn-email">
           <i class="fas fa-envelope"></i>
         </a>
       </li>
@@ -943,7 +912,7 @@ missprobe   : Number of entries that need to be checked when looking up an absen
       
       
       <li>
-        <a href="https://www.linkedin.com/shareArticle?url=/post/golang-maps-internals/&amp;title=Macro%20view%20of%20Maps%20in%20Golang" target="_blank" rel="noopener" class="share-btn-linkedin">
+        <a href="https://www.linkedin.com/shareArticle?url=/post/seccomp-security-profiles-docker/&amp;title=Seccomp%20security%20profiles%20for%20Docker" target="_blank" rel="noopener" class="share-btn-linkedin">
           <i class="fab fa-linkedin-in"></i>
         </a>
       </li>
@@ -956,7 +925,7 @@ missprobe   : Number of entries that need to be checked when looking up an absen
       
       
       <li>
-        <a href="whatsapp://send?text=Macro%20view%20of%20Maps%20in%20Golang%20/post/golang-maps-internals/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+        <a href="whatsapp://send?text=Seccomp%20security%20profiles%20for%20Docker%20/post/seccomp-security-profiles-docker/" target="_blank" rel="noopener" class="share-btn-whatsapp">
           <i class="fab fa-whatsapp"></i>
         </a>
       </li>
@@ -969,7 +938,7 @@ missprobe   : Number of entries that need to be checked when looking up an absen
       
       
       <li>
-        <a href="https://service.weibo.com/share/share.php?url=/post/golang-maps-internals/&amp;title=Macro%20view%20of%20Maps%20in%20Golang" target="_blank" rel="noopener" class="share-btn-weibo">
+        <a href="https://service.weibo.com/share/share.php?url=/post/seccomp-security-profiles-docker/&amp;title=Seccomp%20security%20profiles%20for%20Docker" target="_blank" rel="noopener" class="share-btn-weibo">
           <i class="fab fa-weibo"></i>
         </a>
       </li>
@@ -1129,15 +1098,8 @@ missprobe   : Number of entries that need to be checked when looking up an absen
   
   
   <div class="post-nav-item">
-    <div class="meta-nav">Next</div>
-    <a href="/post/golang-struct-anatomy/" rel="next">Anatomy of Structs in Golang</a>
-  </div>
-  
-  
-  
-  <div class="post-nav-item">
     <div class="meta-nav">Previous</div>
-    <a href="/post/psp/" rel="prev">Learning about Pod Security Policy</a>
+    <a href="/post/golang-struct-anatomy/" rel="prev">Anatomy of Structs in Golang</a>
   </div>
   
 </div>
@@ -1154,15 +1116,15 @@ missprobe   : Number of entries that need to be checked when looking up an absen
     <h3>Related</h3>
     <ul>
       
-      <li><a href="/post/golang-struct-anatomy/">Anatomy of Structs in Golang</a></li>
-      
-      <li><a href="/post/seccomp-security-profiles-docker/">Seccomp security profiles for Docker</a></li>
+      <li><a href="/post/cka/">Passing CKA exam</a></li>
       
       <li><a href="/post/psp/">Learning about Pod Security Policy</a></li>
       
-      <li><a href="/post/cka/">Passing CKA exam</a></li>
+      <li><a href="/post/part-3-api-using-graphql/">Part 3:- API using GraphQL and Node.js</a></li>
       
-      <li><a href="/post/believe-in-yourself/">Believe in yourself</a></li>
+      <li><a href="/post/part-2-api-using-graphql/">Part 2:- API using GraphQL and Node.js</a></li>
+      
+      <li><a href="/post/part-1-api-using-graphql/">Part 1:- API using GraphQL and Node.js</a></li>
       
     </ul>
   </div>

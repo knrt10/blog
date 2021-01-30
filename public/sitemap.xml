@@ -3,58 +3,78 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>/post/golang-struct-anatomy/</loc>
-    <lastmod>2021-01-23T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
     <loc>/authors/</loc>
-    <lastmod>2021-01-23T00:00:00+00:00</lastmod>
+    <lastmod>2021-01-30T00:00:00+00:00</lastmod>
   </url>
   
   <url>
     <loc>/categories/</loc>
-    <lastmod>2021-01-23T00:00:00+00:00</lastmod>
+    <lastmod>2021-01-30T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>/tag/golang/</loc>
-    <lastmod>2021-01-23T00:00:00+00:00</lastmod>
+    <loc>/tag/docker/</loc>
+    <lastmod>2021-01-30T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>/category/golang/</loc>
-    <lastmod>2021-01-23T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/tag/hard/</loc>
-    <lastmod>2021-01-23T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/tag/internals/</loc>
-    <lastmod>2021-01-23T00:00:00+00:00</lastmod>
+    <loc>/category/docker/</loc>
+    <lastmod>2021-01-30T00:00:00+00:00</lastmod>
   </url>
   
   <url>
     <loc>/</loc>
-    <lastmod>2021-01-23T00:00:00+00:00</lastmod>
+    <lastmod>2021-01-30T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/post/seccomp-security-profiles-docker/</loc>
+    <lastmod>2021-01-30T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/tag/security/</loc>
+    <lastmod>2021-01-30T00:00:00+00:00</lastmod>
   </url>
   
   <url>
     <loc>/tags/</loc>
-    <lastmod>2021-01-23T00:00:00+00:00</lastmod>
+    <lastmod>2021-01-30T00:00:00+00:00</lastmod>
   </url>
   
   <url>
     <loc>/category/tech/</loc>
-    <lastmod>2021-01-23T00:00:00+00:00</lastmod>
+    <lastmod>2021-01-30T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/post/golang-struct-anatomy/</loc>
+    <lastmod>2021-01-23T17:11:25+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>/tag/golang/</loc>
+    <lastmod>2021-01-23T17:11:25+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>/category/golang/</loc>
+    <lastmod>2021-01-23T17:11:25+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>/tag/hard/</loc>
+    <lastmod>2021-01-23T17:11:25+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>/tag/internals/</loc>
+    <lastmod>2021-01-23T17:11:25+05:30</lastmod>
   </url>
   
   <url>
     <loc>/post/golang-maps-internals/</loc>
-    <lastmod>2021-01-09T11:51:49+05:30</lastmod>
+    <lastmod>2021-01-23T17:11:25+05:30</lastmod>
   </url>
   
   <url>
@@ -73,17 +93,7 @@
   </url>
   
   <url>
-    <loc>/tag/security/</loc>
-    <lastmod>2021-01-02T13:43:00+05:30</lastmod>
-  </url>
-  
-  <url>
     <loc>/tag/cka/</loc>
-    <lastmod>2020-12-27T15:27:06+05:30</lastmod>
-  </url>
-  
-  <url>
-    <loc>/tag/docker/</loc>
     <lastmod>2020-12-27T15:27:06+05:30</lastmod>
   </url>
   

@@ -5,12 +5,162 @@
     <link>/category/tech/</link>
       <atom:link href="/category/tech/index.xml" rel="self" type="application/rss+xml" />
     <description>tech</description>
-    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><copyright>knrt10 © 2021. [Site source code](https://github.com/knrt10/blog)</copyright><lastBuildDate>Sat, 23 Jan 2021 00:00:00 +0000</lastBuildDate>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><copyright>knrt10 © 2021. [Site source code](https://github.com/knrt10/blog)</copyright><lastBuildDate>Sat, 30 Jan 2021 00:00:00 +0000</lastBuildDate>
     <image>
       <url>/images/icon_hudaf87b0bbf6edf362efcd690a86c5023_625_512x512_fill_lanczos_center_2.png</url>
       <title>tech</title>
       <link>/category/tech/</link>
     </image>
+    
+    <item>
+      <title>Seccomp security profiles for Docker</title>
+      <link>/post/seccomp-security-profiles-docker/</link>
+      <pubDate>Sat, 30 Jan 2021 00:00:00 +0000</pubDate>
+      <guid>/post/seccomp-security-profiles-docker/</guid>
+      <description>&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;nav id=&#34;TableOfContents&#34;&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href=&#34;#what-is-seccomp&#34;&gt;What is Seccomp?&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#how-docker-uses-seccomp&#34;&gt;How docker uses Seccomp?&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#creating-out-own-seccomp-profile-json-file&#34;&gt;Creating out own seccomp profile json file&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#conclusion&#34;&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&#34;#did-you-find-this-page-helpful-consider-sharing-it-&#34;&gt;Did you find this page helpful? Consider sharing it 🙌&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;
+&lt;h2 id=&#34;what-is-seccomp&#34;&gt;What is Seccomp?&lt;/h2&gt;
+&lt;p&gt;As per the &lt;a href=&#34;https://www.kernel.org/doc/Documentation/prctl/seccomp_filter.txt&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;kernel documentation&lt;/a&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;A large number of system calls are exposed to every userland process
+with many of them going unused for the entire lifetime of the process.
+As system calls change and mature, bugs are found and eradicated.  A
+certain subset of userland applications benefit by having a reduced set
+of available system calls.  The resulting set reduces the total kernel
+surface exposed to the application.  System call filtering is meant for
+use with those applications.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Seccomp filtering provides a means for a process to specify a filter for
+incoming system calls.  The filter is expressed as a Berkeley Packet
+Filter (BPF) program, as with socket filters, except that the data
+operated on is related to the system call being made: system call
+number and the system call arguments.  This allows for expressive
+filtering of system calls using a filter program language with a long
+history of being exposed to userland and a straightforward data set.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;how-docker-uses-seccomp&#34;&gt;How docker uses Seccomp?&lt;/h2&gt;
+&lt;p&gt;Secure computing mode &lt;code&gt;(seccomp)&lt;/code&gt; is a Linux kernel feature. You can use it to restrict the actions available within the container. The &lt;code&gt;seccomp()&lt;/code&gt; system call operates on the seccomp state of the calling process. You can use this feature to restrict your application’s access.&lt;/p&gt;
+&lt;p&gt;This feature is available only if Docker has been built with seccomp and the kernel is configured with &lt;code&gt;CONFIG_SECCOMP&lt;/code&gt; enabled. To check if your kernel supports seccomp:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ grep CONFIG_SECCOMP= /boot/config-$(uname -r)
+CONFIG_SECCOMP=y
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The default &lt;code&gt;seccomp&lt;/code&gt; profile provides a sane default for running containers with seccomp and disables around &lt;code&gt;44&lt;/code&gt; system calls out of &lt;code&gt;300+&lt;/code&gt;. It is moderately protective while providing wide application compatibility. The default Docker profile can be found &lt;a href=&#34;https://github.com/moby/moby/blob/master/profiles/seccomp/default.json&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;seccomp&lt;/code&gt; is instrumental for running Docker containers with least privilege. It is not recommended to change the default seccomp profile.&lt;/p&gt;
+&lt;p&gt;When you run a container, it uses the default profile unless you override it with the &lt;code&gt;--security-opt&lt;/code&gt; option. For example, the following explicitly specifies a policy:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;docker run --rm \
+  -it \
+  --security-opt seccomp=/path/to/seccomp/profile.json \
+  hello-world
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Let&amp;rsquo;s take a look at snippet of syscalls allowed from the default profile:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;names&amp;quot;: [
+    &amp;quot;bpf&amp;quot;,
+    &amp;quot;clone&amp;quot;,
+    &amp;quot;fanotify_init&amp;quot;,
+    &amp;quot;lookup_dcookie&amp;quot;,
+    &amp;quot;mount&amp;quot;,
+    &amp;quot;name_to_handle_at&amp;quot;,
+    &amp;quot;perf_event_open&amp;quot;,
+    &amp;quot;quotactl&amp;quot;,
+    &amp;quot;setdomainname&amp;quot;,
+    &amp;quot;sethostname&amp;quot;,
+    &amp;quot;setns&amp;quot;,
+    &amp;quot;syslog&amp;quot;,
+    &amp;quot;umount&amp;quot;,
+    &amp;quot;umount2&amp;quot;,
+    &amp;quot;unshare&amp;quot;
+  ],
+  &amp;quot;action&amp;quot;: &amp;quot;SCMP_ACT_ALLOW&amp;quot;,
+  &amp;quot;args&amp;quot;: [],
+  &amp;quot;comment&amp;quot;: &amp;quot;&amp;quot;,
+  &amp;quot;includes&amp;quot;: {
+    &amp;quot;caps&amp;quot;: [
+        &amp;quot;CAP_SYS_ADMIN&amp;quot;
+    ]
+  },
+  &amp;quot;excludes&amp;quot;: {}
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;names&lt;/code&gt; field in above json snippet refers to syscalls of linux kernel. They are only allowed for containers that you run with capability &lt;code&gt;CAP_SYS_ADMIN&lt;/code&gt; mentioned in &lt;code&gt;action&lt;/code&gt; json field. You can pass this capability to a container using &lt;code&gt;--cap-add&lt;/code&gt; flag.&lt;/p&gt;
+&lt;h2 id=&#34;creating-out-own-seccomp-profile-json-file&#34;&gt;Creating out own seccomp profile json file&lt;/h2&gt;
+&lt;p&gt;One thing to know is that every executable binary in unix system has some capabilities assigned to it. For example if you want to find capabilities assined to &lt;code&gt;ping&lt;/code&gt; binary just use &lt;code&gt;getcap&lt;/code&gt; command like this:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ getcap $(which ping)
+/usr/bin/ping = cap_net_admin,cap_net_raw+p
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;So what we will do that, is we will be tying &lt;code&gt;CAP_AUDIT_CONTROL&lt;/code&gt; capability to our &lt;code&gt;chown&lt;/code&gt; syscall. You can take any other capability other than &lt;code&gt;CAP_CHOWN&lt;/code&gt;.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;This is purely for experimenting and understanding how seccomp profile will work. DO NOT use it in production environment.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;To make this work we will remove all the occurances of &lt;code&gt;chown&lt;/code&gt; syscall from &lt;a href=&#34;https://github.com/moby/moby/blob/master/profiles/seccomp/default.json&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;default&lt;/a&gt; seccomp profile and move it to our custom profile like this:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;{
+  &amp;quot;names&amp;quot;: [
+    &amp;quot;chown&amp;quot;,
+    &amp;quot;chown32&amp;quot;,
+    &amp;quot;fchown&amp;quot;,
+    &amp;quot;fchown32&amp;quot;,
+    &amp;quot;fchownat&amp;quot;,
+    &amp;quot;lchown&amp;quot;,
+    &amp;quot;lchown32&amp;quot;
+  ],
+  &amp;quot;action&amp;quot;: &amp;quot;SCMP_ACT_ALLOW&amp;quot;,
+  &amp;quot;args&amp;quot;: [],
+  &amp;quot;comment&amp;quot;: &amp;quot;&amp;quot;,
+  &amp;quot;includes&amp;quot;: {
+    &amp;quot;caps&amp;quot;: [
+      &amp;quot;CAP_AUDIT_CONTROL&amp;quot;
+    ]
+  },
+  &amp;quot;excludes&amp;quot;: {}
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Final &lt;code&gt;json&lt;/code&gt; file can be &lt;a href=&#34;https://gist.github.com/knrt10/4c877585947f34fbfcab7626f3e7229c&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;found here&lt;/a&gt;. Copy it from github gist and save it as &lt;code&gt;custom-profile.json&lt;/code&gt; because it will be used in our next step for running docker container. Run the below command:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ docker run --rm -it --security-opt seccomp=custom-profile.json debian bash
+
+# Try creating a user
+root@429a518f8ec5:/# useradd knrt10
+useradd: failure while writing changes to /etc/passwd
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Above command will fail as &lt;code&gt;useradd&lt;/code&gt; syscall uses &lt;code&gt;CAP_CHOWN&lt;/code&gt; internally. That is different topic, I will write an article about it another time.&lt;/p&gt;
+&lt;p&gt;Now exit and try to run the docker container using this command:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ docker run --cap-add=CAP_AUDIT_CONTROL --rm -it --security-opt seccomp=custom-profile.json debian bash
+
+# create a new user
+root@ea95510fcb7c:/# useradd -m knrt10
+
+# check current user i.e root
+root@ea95510fcb7c:/# id -u
+0
+
+# create a file
+root@ea95510fcb7c:/# touch a
+
+# check permissions on file. Note currently it is owned by root
+root@ea95510fcb7c:/# ls -l a
+-rw-r--r-- 1 root root 0 Jan 30 11:21 a
+
+# change ownership to earlier created user
+root@ea95510fcb7c:/# chown knrt10 a
+
+# check permissions on file. It is changed to user knrt10
+root@ea95510fcb7c:/# ls -l a
+-rw-r--r-- 1 knrt10 root 0 Jan 30 11:21 a
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;When running the docker container by explicitly specifying the capability &lt;code&gt;CAP_AUDIT_CONTROL&lt;/code&gt; and then the container allows and uses syscall &lt;code&gt;chown&lt;/code&gt;. In this way you can create your own profile and tie it up with any capability you want.&lt;/p&gt;
+&lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;You learnt how seccomp profiles are used by docker and how you can create a custom seccomp profile and use it while running your docker container. This is mostly used for security purposes when you don&amp;rsquo;t want your container to have extra kernel priviledges. You can learn more in details from &lt;a href=&#34;https://docs.docker.com/engine/security/seccomp/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;docker&lt;/a&gt; documentation.&lt;/p&gt;
+&lt;h2 id=&#34;did-you-find-this-page-helpful-consider-sharing-it-&#34;&gt;Did you find this page helpful? Consider sharing it 🙌&lt;/h2&gt;
+</description>
+    </item>
     
     <item>
       <title>Anatomy of Structs in Golang</title>

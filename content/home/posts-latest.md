@@ -8,7 +8,7 @@ active = true  # Activate this widget? true/false
 weight = 20  # Order that this section will appear.
 
 title = "Check out my new article"
-subtitle = "Learn about struct representation in Go"
+subtitle = "Learn about Seccomp profiles for Docker"
 
 [content]
   # Page type to display. E.g. post, talk, or publication.
