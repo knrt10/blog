@@ -6,15 +6,15 @@ title: Kautilya Tripathi
 superuser: true
 
 # Role/position
-role: Cloud Infrastructure Engineer
+role: Software Engineer 2
 
 # Organizations/Affiliations
 organizations:
-- name: Kinvolk
+- name: Microsoft (Working with kinvolk team)
   url: "https://github.com/kinvolk/"
 
 # Short bio (displayed in user profile at end of posts)
-bio: Certified Kubernetes Administrator (CKA) | Distributed Systems | Systems Programming | OSS ❤️
+bio: Certified Kubernetes Security Specialist (CKS) | Certified Kubernetes Administrator (CKA) | Distributed Systems | Systems Programming | OSS ❤️
 
 #interests:
 #- Artificial Intelligence
@@ -47,16 +47,16 @@ bio: Certified Kubernetes Administrator (CKA) | Distributed Systems | Systems Pr
 social:
 - icon: github
   icon_pack: fab
-  link: https://github.com/knrt10
+  link: https://github.com/knrt10/
 - icon: twitter
   icon_pack: fab
-  link: https://twitter.com/knrt_10
+  link: https://twitter.com/knrt_10/
 - icon: linkedin
   icon_pack: fab
   link: https://www.linkedin.com/in/knrt10/
 - icon: cv
   icon_pack: ai
-  link: https://knrt10.github.io/resume/resume.pdf
+  link: https://knrt10.github.io/resume/resume.pdf/
 
 # Enter email to display Gravatar (if Gravatar enabled in Config)
 email: "tripathi.kautilya@gmail.com"
